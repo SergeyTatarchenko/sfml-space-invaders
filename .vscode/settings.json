@@ -45,5 +45,8 @@
         "numbers": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "Siarhei"
+    ]
 }

@@ -11,57 +11,37 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <cstdint>
-
-
-struct Coordinates
-{
-    double x;
-    double y;
-};
+#include <SFML/Graphics.hpp>
 
 class Object
 {
     public:
-
-        void setPosition(const double x, const double y);
+        /// @brief  setup object position
+        /// @param x X coordinate of the new position
+        /// @param y Y coordinate of the new position
+        void setPosition(const float x, const float y);
+        /// @brief set object as visible on the canvas 
         void setVisible();
-        void setUnvisible();
-        void getPosition(Coordinates& coordinates);
-        bool getObjectStatus();
-        double functionAbscissus(const double x)
-        {
-            (void)x;
-            return 0.0;
-        }
-        double functionOrdinatus(const double y)
-        {
-            (void)x;
-            return 0.0;
-        }
-        
+        /// @brief set object as invisible on the canvas
+        void setInvisible();
+        /// @brief check if object visible or not
+        /// @return true if visible false if not
+        const bool getObjectStatus();
+        /// @brief get reference to object outline
+        /// @return const reference to actual outline
+        const sf::FloatRect& getRectangle();
+
     protected:
+        /// @brief object sprite with texture
+        sf::Sprite sprite;
+        /// @brief object with loaded texture
+        sf::Texture texture;
+        /// @brief object outline, updated to actual one after getRectangle request
+        sf::FloatRect outline;
         /// @brief object state flag, whether it will be displayed in coordinates or not.
         bool visible;
-        /// @brief  object coordinates in Cartesian coordinate system
-        Coordinates coordinates;
-        /// @brief dx/dt for the object traektory
+        /// @brief dx/dt for the object trajectory
         double speed;
-};
-
-class Circle : public Object
-{
-    public:
-        Circle(double radius = 0.0)
-        {
-            this->radius = radius;
-        }
-        double getRadius();
-        double functionAbscissus(const double x);
-        double functionOrdinatus(const double y);
-
-    protected:
-        double radius;
 };
 
 #endif //OBJECT_H

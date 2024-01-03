@@ -10,21 +10,9 @@
 #include <cmath>
 #include "object.hpp"
 
-void Object::setPosition(const double x, const double y)
+void Object::setPosition(const float x, const float y)
 {
-    this->coordinates.x = x;
-    this->coordinates.y = y;
-}
-
-void Object::getPosition(Coordinates &coordinates)
-{
-    coordinates.x = this->coordinates.x;
-    coordinates.y = this->coordinates.y;
-}
-
-bool Object::getObjectStatus()
-{
-    return this->visible;
+    this->sprite.setPosition(x,y);
 }
 
 void Object::setVisible()
@@ -32,26 +20,18 @@ void Object::setVisible()
     this->visible = true;
 }
 
-void Object::setUnvisible()
+void Object::setInvisible()
 {
     this->visible = false;
 }
 
-double Circle::getRadius()
+const bool Object::getObjectStatus()
 {
-    return this->radius;
+    return this->visible;
 }
 
-double Circle::functionAbscissus(const double x)
+const sf::FloatRect &Object::getRectangle()
 {
-    // function : (x - a)^2  + (y - b)^2 = r^2
-    double y = sqrt(pow(this->radius,2) - pow((x - this->coordinates.x),2)) - this->coordinates.y;
-    return y;
-}
-
-double Circle::functionOrdinatus(const double y)
-{
-    // function : (x - a)^2  + (y - b)^2 = r^2
-    double x = sqrt(pow(this->radius,2) - pow((y - this->coordinates.y),2)) - this->coordinates.x;
-    return x;
+    this->outline = this->sprite.getGlobalBounds();
+    return this->outline;
 }
