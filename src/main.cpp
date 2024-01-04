@@ -16,6 +16,5 @@ int main()
     Canvas canvas(500,500,60);
     canvas.windowEventHandler();
     canvas.~Canvas();
-    while(true){}
     return 0;
 }

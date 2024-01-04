@@ -34,3 +34,8 @@ const sf::FloatRect &Object::getRectangle()
     this->outline = this->sprite.getGlobalBounds();
     return this->outline;
 }
+
+const sf::Sprite &Object::getSprite()
+{
+    return this->sprite;
+}

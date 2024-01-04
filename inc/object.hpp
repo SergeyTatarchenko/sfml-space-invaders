@@ -30,6 +30,7 @@ class Object
         /// @brief get reference to object outline
         /// @return const reference to actual outline
         const sf::FloatRect& getRectangle();
+        const sf::Sprite& getSprite();
 
     protected:
         /// @brief object sprite with texture
@@ -40,8 +41,8 @@ class Object
         sf::FloatRect outline;
         /// @brief object state flag, whether it will be displayed in coordinates or not.
         bool visible;
-        /// @brief dx/dt for the object trajectory
-        double speed;
+        /// @brief object speed in coordinates per second
+        float speed;
 };
 
 #endif //OBJECT_H

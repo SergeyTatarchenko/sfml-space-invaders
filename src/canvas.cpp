@@ -1,5 +1,5 @@
 /**
- * @file window.cpp
+ * @file canvas.cpp
  *
  * @brief 
  *
@@ -8,11 +8,12 @@
  *
  */
 #include "canvas.hpp"
+#include "items.hpp"
 
 //default size for coordinates for main view
 static const float default_x_size = 1000.f;
 static const float default_y_size = 1000.f;
-static const sf::String title = "Space Invaders";
+static const sf::String title = "default title";
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -54,6 +55,10 @@ void Canvas::windowEventHandler()
 void Canvas::threadHandler()
 {
     //obtain control on window
+    Invader invader1(150.f,150.f);
+    Invader invader2(200.f,150.f);
+    Invader invader3(250.f,150.f);
+
     if(!this->p_window->setActive(true)){return;}
     else
     {
@@ -62,8 +67,17 @@ void Canvas::threadHandler()
         {
             sf::View view(sf::FloatRect(0.f, 0.f, default_x_size, default_y_size));
             this->p_window->setView(view);
-            this->p_window->clear(sf::Color::White); 
+            this->p_window->clear(sf::Color::Black); 
+            this->p_window->draw(invader1.getSprite());
+            this->p_window->draw(invader2.getSprite());
+            this->p_window->draw(invader3.getSprite());
+            
             this->p_window->display();
+
+            invader1.moveAlongTrajektory(this->framerate);
+            invader2.moveAlongTrajektory(this->framerate);
+            invader3.moveAlongTrajektory(this->framerate);
+
             unsigned int delay_per_frame = 1000/this->framerate;
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_per_frame));
         }
