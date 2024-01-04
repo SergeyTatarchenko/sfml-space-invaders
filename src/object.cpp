@@ -7,7 +7,6 @@
  * Contact: zlojdigger@gmail.com
  *
  */
-#include <cmath>
 #include "object.hpp"
 
 void Object::setPosition(const float x, const float y)
