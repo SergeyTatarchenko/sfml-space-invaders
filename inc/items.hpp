@@ -18,13 +18,11 @@ class Invader: public Object
 {
     public:
 
-        Invader(const float x = 0.f, const float y = 0.f);
-        void moveAlongTrajektory(unsigned int framerate);
+        Invader(float x, float y, float speed, bool visible);
+        void moveAlongTrajectory(unsigned int framerate);
     
     private:
-    
-        float def_x;
-        float def_y;
+        int position_counter;
 };
 
 #endif //ITEMS_H

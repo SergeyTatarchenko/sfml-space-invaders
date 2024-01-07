@@ -11,6 +11,8 @@
 
 void Object::setPosition(const float x, const float y)
 {
+    this->def_x = x;
+    this->def_y = y;
     this->sprite.setPosition(x,y);
 }
 

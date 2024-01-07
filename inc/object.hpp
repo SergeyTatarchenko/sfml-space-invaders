@@ -43,6 +43,10 @@ class Object
         bool visible;
         /// @brief object speed in coordinates per second
         float speed;
+        /// @brief default object x coordinate    
+        float def_x;
+        /// @brief default object y coordinate
+        float def_y;
 };
 
 #endif //OBJECT_H

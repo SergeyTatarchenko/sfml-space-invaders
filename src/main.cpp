@@ -14,6 +14,8 @@
 int main()
 {
     Canvas canvas(500,500,60);
+    canvas.spawnEnemies();
+    
     canvas.windowEventHandler();
     canvas.~Canvas();
     return 0;
