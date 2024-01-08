@@ -24,11 +24,14 @@ Invader::Invader(float x, float y, float speed, bool visible)
 
 void Invader::moveAlongTrajectory(unsigned int framerate)
 {
-    static const int step_x = 50;
-    static const int step_y = 50;
-
-    float distance = this->speed/framerate;
-
+    static const int step_x = 10;
+    static const int step_y = 10;
+    
+    float distance = 0.f;
+    if(framerate != 0)
+    {
+        distance = this->speed/framerate;
+    }
     // Invader trajectory:
     //  10 steps
     // --------------->
@@ -46,4 +49,14 @@ void Invader::moveAlongTrajectory(unsigned int framerate)
         this->sprite.setPosition(this->def_x,this->def_y);
         this->position_counter = 0;
     }
-}   
+}
+
+Shell::Shell(float x, float y, float speed, ShellTypes shell_type)
+{
+
+}
+
+void Shell::moveAlongTrajectory(unsigned int framerate)
+{
+
+}

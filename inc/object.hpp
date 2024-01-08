@@ -26,7 +26,7 @@ class Object
         void setInvisible();
         /// @brief check if object visible or not
         /// @return true if visible false if not
-        const bool getObjectStatus();
+        const bool isVisible();
         /// @brief get reference to object outline
         /// @return const reference to actual outline
         const sf::FloatRect& getRectangle();

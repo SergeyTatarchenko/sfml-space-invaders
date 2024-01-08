@@ -26,7 +26,7 @@ void Object::setInvisible()
     this->visible = false;
 }
 
-const bool Object::getObjectStatus()
+const bool Object::isVisible()
 {
     return this->visible;
 }

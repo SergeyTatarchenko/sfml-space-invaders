@@ -26,14 +26,14 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
 {
     this->framerate = framerate;
     this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    this->p_thread  = new std::thread(&Canvas::threadHandler,this);
+    this->p_graphic_thread  = new std::thread(&Canvas::graphicThreadHandler,this);
     //disable window control (it will be controlled in p_thread)
     this->p_window->setActive(false); 
 }
 
 Canvas::~Canvas()
 {
-    delete p_thread;
+    delete p_graphic_thread;
     delete p_window;
 }
 
@@ -56,18 +56,18 @@ void Canvas::windowEventHandler()
         }
         std::this_thread::sleep_for(50ms);
     }
-    this->p_thread->join();
+    this->p_graphic_thread->join();
 }
 
 void Canvas::spawnEnemies()
 {
     //enemies
     Invader invader(0.f,0.f,default_invader_speed,true);
-    float init_x = 50.f;
-    float init_y = 50.f;
-    
+    float init_x   = 50.f;
+    float init_y   = 50.f;
     float offset_y = 0.f;
-    for(auto j = 0; j < rows_with_invaders;j++)
+
+    for(auto j = 0; j < rows_with_invaders; j++)
     {
         float offset_x = 0.f;
         for(auto i = 0; i < invaders_in_row; i++)
@@ -95,19 +95,28 @@ void Canvas::updateItemsPosition()
     //update enemies
     for(auto i = 0; i < this->enemies.size(); i++)
     {
-        this->enemies[i].moveAlongTrajectory(this->framerate);
+        if(this->enemies[i].isVisible() == true)
+        {
+            this->enemies[i].moveAlongTrajectory(this->framerate);
+        }
     }
 }
 
 void Canvas::updateFramerate(const unsigned int framerate)
 {
-
+    if(framerate <= MAX_FRAMERATE)
+    {
+        this->framerate = framerate;
+    }
+    else
+    {
+        this->framerate = MAX_FRAMERATE;
+    }
 }
 
-void Canvas::threadHandler()
+void Canvas::graphicThreadHandler()
 {
     //obtain control on window
-
     if(!this->p_window->setActive(true)){return;}
     else
     {
@@ -124,6 +133,10 @@ void Canvas::threadHandler()
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_per_frame));
         }
     }
+}
+
+void Canvas::gameEventHandler()
+{
 }
 
 void Canvas::eventExecutor(const sf::Event &event)
