@@ -34,7 +34,7 @@ class Invader : public Object
         /// @param speed object speed on canvas
         /// @param visible object visibility on canvas
         Invader(float x, float y, float speed, bool visible);
-        /// @brief change object position according to internal trajektory function
+        /// @brief change object position according to internal trajectory function
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
     
@@ -55,7 +55,10 @@ class Shell : public Object
         /// @brief check instance shell type
         /// @return enum class with ShellTypes
         const ShellTypes getShellType();
-        /// @brief change object position according to internal trajektory function
+        /// @brief change shell type of the instance
+        /// @param new_type new shell type from ShellTypes
+        void setShellType(const ShellTypes new_type);
+        /// @brief change object position according to internal trajectory function
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
     

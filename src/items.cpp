@@ -69,6 +69,11 @@ const ShellTypes Shell::getShellType()
     return this->shell_type;
 }
 
+void Shell::setShellType(const ShellTypes new_type)
+{
+    this->shell_type = new_type;
+}
+
 void Shell::moveAlongTrajectory(unsigned int framerate)
 {
     float distance = 0.f;

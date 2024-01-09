@@ -14,10 +14,18 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <atomic>
+#include <mutex>
+
 #include <SFML/Graphics.hpp>
 #include "items.hpp"
 
 #define MAX_FRAMERATE (unsigned int)(120)
+
+struct GameEvents
+{
+    std::atomic<bool> game_in_progress {false};
+};
 
 class Canvas
 {
@@ -27,7 +35,7 @@ class Canvas
         /// @param height canvas initial height in pixels
         /// @param framerate canvas initial framerate
         Canvas(const unsigned int width, unsigned int height, const unsigned int framerate);
-        /// @brief default desctuctor
+        /// @brief default destructor
         ~Canvas();
         /// @brief update canvas framerate
         /// @param framerate new framerate
@@ -54,13 +62,17 @@ class Canvas
         std::thread* p_graphic_thread;
         /// @brief pointer to thread with internal game events
         std::thread* p_game_event_thread;
+        /// @brief  struct with internal game events
+        std::atomic<bool> game_in_progress {false};
+        /// @brief mutex for proper resource sharing between threads
+        std::mutex game_context_control;
         /// @brief handler for p_graphic_thread 
         void graphicThreadHandler();
         /// @brief handler for p_game_event_thread
-        void gameEventHandler();
+        void gameEventGenerator();
         /// @brief render items on canvas according to their actual state
         void updateCanvas();
-        /// @brief update items on canvas according to their trajektory
+        /// @brief update items on canvas according to their trajectory
         void updateItemsPosition();
         /// @brief control all items on canvas and remove them if they leave visible space
         void controlItemsPosition();
