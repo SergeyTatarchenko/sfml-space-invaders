@@ -30,6 +30,8 @@ class Object
         /// @brief get reference to object outline
         /// @return const reference to actual outline
         const sf::FloatRect& getRectangle();
+        /// @brief get reference to object sprite
+        /// @return const reference to sf::Sprite type class member
         const sf::Sprite& getSprite();
 
     protected:

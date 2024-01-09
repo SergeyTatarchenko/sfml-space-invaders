@@ -40,8 +40,14 @@ class Canvas
     private:
         /// @brief vector with invader instances
         std::vector<Invader> enemies;
+        /// @brief vector with shell instances
+        std::vector<Shell> bullets;
         /// @brief actual canvas framerate
         unsigned int framerate;
+        /// @brief actual grid for x
+        float grid_x;
+        /// @brief actual grid for y
+        float grid_y;
         /// @brief pointer to SFML window
         sf::RenderWindow* p_window;
         /// @brief pointer to thread with all graphic management
@@ -56,9 +62,14 @@ class Canvas
         void updateCanvas();
         /// @brief update items on canvas according to their trajektory
         void updateItemsPosition();
+        /// @brief control all items on canvas and remove them if they leave visible space
+        void controlItemsPosition();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void eventExecutor(const sf::Event& event);
-};
+        /// @brief make enemy invader to shot
+        /// @param invader reference to invader instance
+        void invaderShot(Invader& invader);
+};      
 
 #endif //CANVAS_H

@@ -14,7 +14,7 @@ Invader::Invader(float x, float y, float speed, bool visible)
     this->setPosition(x,y);
     this->sprite.setTexture(this->texture);
     
-    sprite.setTextureRect(sf::IntRect(0, 0, 20, 20));
+    sprite.setTextureRect(sf::IntRect(0, 0, INVADER_WIDTH, INVADER_HEIGHT));
     this->sprite.setColor(sf::Color::White);
     
     this->visible          = visible;
@@ -53,10 +53,44 @@ void Invader::moveAlongTrajectory(unsigned int framerate)
 
 Shell::Shell(float x, float y, float speed, ShellTypes shell_type)
 {
+    this->setPosition(x,y);
+    this->sprite.setTexture(this->texture);
+    
+    sprite.setTextureRect(sf::IntRect(0, 0, SHELL_WIDTH, SHELL_HEIGHT));
+    this->sprite.setColor(sf::Color::White);
+    
+    this->shell_type = shell_type;
+    this->visible    = true;
+    this->speed      = speed; 
+}
 
+const ShellTypes Shell::getShellType()
+{
+    return this->shell_type;
 }
 
 void Shell::moveAlongTrajectory(unsigned int framerate)
 {
+    float distance = 0.f;
+    if(framerate != 0)
+    {
+        distance = this->speed/framerate;
+    }
 
+    // Shell trajectory:
+    // /|\             |
+    //  |     OR       |   
+    //  |             \|/ 
+
+    switch(this->shell_type)
+    {
+        case ShellTypes::ENEMY_SHELL:
+            this->sprite.move(0.f,distance);
+            break;
+        case ShellTypes::PLAYER_SHELL:
+            this->sprite.move(0.f,distance* (-1.f));
+            break;
+        default:
+            break;
+    }
 }

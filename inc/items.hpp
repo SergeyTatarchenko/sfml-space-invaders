@@ -13,6 +13,12 @@
 
 #include "object.hpp"
 
+#define INVADER_WIDTH (int)(20)
+#define INVADER_HEIGHT (int)(20)
+
+#define SHELL_WIDTH (int)(5)
+#define SHELL_HEIGHT (int)(5)
+
 enum class ShellTypes
 {
     ENEMY_SHELL,
@@ -46,13 +52,14 @@ class Shell : public Object
         /// @param speed object speed on canvas
         /// @param shell_type shell type (who shot)
         Shell(float x, float y, float speed, ShellTypes shell_type);
+        /// @brief check instance shell type
+        /// @return enum class with ShellTypes
+        const ShellTypes getShellType();
         /// @brief change object position according to internal trajektory function
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
     
     private:
-        /// @brief object position counter, used in moveAlongTrajectory function 
-        int position_counter;
         /// @brief shell type (who shot this shell)
         ShellTypes shell_type;
 };
