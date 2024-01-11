@@ -103,12 +103,55 @@ void Shell::moveAlongTrajectory(unsigned int framerate)
     }
 }
 
-EnemyShip::EnemyShip(float x, float y, float speed, bool visible)
+InvaderShip::InvaderShip(float x, float y, float speed, bool visible, float range)
 {
+    this->visible = visible;
+    this->speed   = speed;
+    this->range   = range;
+    //start with move right
+    this->direction = ItemDirection::RIGHT;
+    this->setPosition(x,y);
 
+    this->sprite.setTexture(this->texture);
+    sprite.setTextureRect(sf::IntRect(0, 0, INVADER_SHIP_WIDTH, INVADER__SHIP_HEIGHT));
+    this->sprite.setColor(sf::Color::White);
 }
 
-void EnemyShip::moveAlongTrajectory(unsigned int framerate)
+void InvaderShip::moveAlongTrajectory(unsigned int framerate)
 {
+    // Invader ship trajectory:
+    //  n steps, depends on this->distance
+    // --------------->
+    // <--------------|
+    float distance = 0.f;
+    if(framerate != 0)
+    {
+        distance = this->speed/framerate;
+    }
+    auto position = this->getRectangle().getPosition();
+    // update direction
+    
+    if((position.x + distance) > (this->def_x + this->range))
+    {
+        //time to turn direction to left
+        this->direction = ItemDirection::LEFT;
+    }
+    else if((position.x - distance) < this->def_x)
+    {
+        //time to turn direction to right again
+        this->direction = ItemDirection::RIGHT;
+    }
+
+    switch(this->direction)
+    {
+        case ItemDirection::RIGHT:
+            this->sprite.move(distance,0.f);
+            break;
+        case ItemDirection::LEFT:
+            this->sprite.move(distance * (-1.f),0.f);
+            break;
+        default:
+            break;
+    }
     
 }

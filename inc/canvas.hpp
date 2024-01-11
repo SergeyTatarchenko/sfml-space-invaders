@@ -48,6 +48,7 @@ class Canvas
     private:
         /// @brief vector with invader instances
         std::vector<Invader> enemies;
+        std::vector<InvaderShip> enemyShips;        
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
         /// @brief actual canvas framerate

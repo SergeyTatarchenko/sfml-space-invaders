@@ -25,7 +25,9 @@ static const float default_y_size = 1000.f;
 static const int   invaders_in_row       = 18;
 static const int   rows_with_invaders    = 4;
 //canvas cross in 10s
-static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f) ;
+static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
+//canvas cross in 4s
+static const float default_ship_speed = (default_x_size + default_y_size)/(2.f * 4.f);
 //canvas cross in 2s
 static const float default_shell_speed = (default_x_size + default_y_size)/(2.f * 2.f) ;
 //max 20 items per one row
@@ -92,6 +94,15 @@ void Canvas::updateCanvas()
             this->p_window->draw(this->bullets[i].getSprite());
         }
     }
+    //update enemy ships
+    for(auto i = 0; i < this->enemyShips.size(); i++)
+    {
+        if(this->enemyShips[i].isVisible() == true)
+        {
+            this->p_window->draw(this->enemyShips[i].getSprite());
+        }
+    }
+
 }
 
 void Canvas::updateItemsPosition()
@@ -110,6 +121,14 @@ void Canvas::updateItemsPosition()
         if(this->bullets[i].isVisible() == true)
         {
             this->bullets[i].moveAlongTrajectory(this->framerate);
+        }
+    }
+    //update enemy ships
+    for(auto i = 0; i < this->enemyShips.size(); i++)
+    {
+        if(this->enemyShips[i].isVisible() == true)
+        {
+            this->enemyShips[i].moveAlongTrajectory(this->framerate);
         }
     }
 }
@@ -203,7 +222,7 @@ void Canvas::spawnEnemies()
     //enemies
     Invader invader(0.f,0.f,default_invader_speed,true);
     const float init_x = 50.f;
-    const float init_y = 50.f;
+    const float init_y = 100.f;
     
     while(this->game_context_control.try_lock() == false){}
     float offset_y = 0.f;
@@ -218,6 +237,10 @@ void Canvas::spawnEnemies()
         }
         offset_y += grid_row_step;
     }
+    // enemy ships
+    InvaderShip ship(10.f,10.f,default_ship_speed,true,this->grid_x);
+    this->enemyShips.push_back(ship);
+
     this->game_context_control.unlock();
 }
 
