@@ -9,6 +9,15 @@
  */
 #include "items.hpp"
 
+#define INVADER_WIDTH        (int)(20)
+#define INVADER_HEIGHT       (int)(20)
+
+#define INVADER_SHIP_WIDTH   (int)(40)
+#define INVADER__SHIP_HEIGHT (int)(20)
+
+#define SHELL_WIDTH          (int)(5)
+#define SHELL_HEIGHT         (int)(5)
+
 Invader::Invader(float x, float y, float speed, bool visible)
 {
     this->visible          = visible;
@@ -120,18 +129,18 @@ InvaderShip::InvaderShip(float x, float y, float speed, bool visible, float rang
 void InvaderShip::moveAlongTrajectory(unsigned int framerate)
 {
     // Invader ship trajectory:
-    //  n steps, depends on this->distance
+    //  n steps, depends on this->range
     // --------------->
     // <--------------|
     float distance = 0.f;
-    if(framerate != 0)
-    {
-        distance = this->speed/framerate;
-    }
-    auto position = this->getRectangle().getPosition();
-    // update direction
+    auto rectangle = this->getRectangle(); 
+    auto position  = rectangle.getPosition();
     
-    if((position.x + distance) > (this->def_x + this->range))
+    if(framerate != 0){distance = this->speed/framerate;}
+    else{return;}
+    
+    // update direction 
+    if((position.x + distance + rectangle.width) > (this->def_x + this->range))
     {
         //time to turn direction to left
         this->direction = ItemDirection::LEFT;
@@ -152,6 +161,20 @@ void InvaderShip::moveAlongTrajectory(unsigned int framerate)
             break;
         default:
             break;
-    }
+    }    
+}
+
+void InvaderShip::setDirection(const ItemDirection direction)
+{
+    this->direction = direction;
+}
+
+PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit_y)
+{
     
+}
+
+void PlayerShip::move(ItemDirection direction)
+{
+
 }

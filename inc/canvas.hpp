@@ -22,11 +22,6 @@
 
 #define MAX_FRAMERATE (unsigned int)(120)
 
-struct GameEvents
-{
-    std::atomic<bool> game_in_progress {false};
-};
-
 class Canvas
 {
     public:

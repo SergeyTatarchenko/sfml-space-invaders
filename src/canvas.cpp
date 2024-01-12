@@ -13,7 +13,6 @@
 
 #include "canvas.hpp"
 #include "items.hpp"
-
 //window title and game name
 static const sf::String title = "Space Invaders";
 
@@ -21,17 +20,20 @@ static const sf::String title = "Space Invaders";
 static const float default_x_size = 1000.f;
 static const float default_y_size = 1000.f;
 
-//invaders constants for grid and speed
-static const int   invaders_in_row       = 18;
-static const int   rows_with_invaders    = 4;
-//canvas cross in 10s
-static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
-//canvas cross in 4s
-static const float default_ship_speed = (default_x_size + default_y_size)/(2.f * 4.f);
-//canvas cross in 2s
-static const float default_shell_speed = (default_x_size + default_y_size)/(2.f * 2.f) ;
+//game event tick
+static const int game_event_tick_ms = 50;
+
 //max 20 items per one row
 static const float grid_row_step = default_x_size/20.f;
+
+//invaders constants for grid and speed
+static const int   invaders_in_row       = 18;
+static const int   rows_with_invaders    = 2;
+
+//speed setup
+static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
+static const float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
+static const float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -72,7 +74,7 @@ void Canvas::windowEventHandler()
                 this->eventExecutor(event);
             }
         }
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
     }
 }
 
@@ -102,7 +104,6 @@ void Canvas::updateCanvas()
             this->p_window->draw(this->enemyShips[i].getSprite());
         }
     }
-
 }
 
 void Canvas::updateItemsPosition()
@@ -181,12 +182,11 @@ void Canvas::graphicThreadHandler()
 
 void Canvas::gameEventGenerator()
 {
-    using namespace std::chrono_literals;
     static int counter = 0;   
     // we will exit this function only if window was requested to be closed
     while (this->game_in_progress.load(std::memory_order_relaxed) == true)
     {
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
         counter++;
         if((counter % 20) == 0)
         {
@@ -206,12 +206,20 @@ void Canvas::eventExecutor(const sf::Event &event)
     {
 
     case sf::Event::Closed:
+        // game stop, threads stop, window closed
         this->game_in_progress.store(false,std::memory_order_relaxed);
         this->p_graphic_thread->join();
         this->p_game_event_thread->join();
         this->p_window->setActive(true);
         this->p_window->close();
         break;
+    
+    case sf::Event::KeyPressed:
+        // game control
+        std::cout<<"key type : "<<event.key.code<<std::endl;
+        
+        break;
+    
     default:
         break;
     }
@@ -238,7 +246,7 @@ void Canvas::spawnEnemies()
         offset_y += grid_row_step;
     }
     // enemy ships
-    InvaderShip ship(10.f,10.f,default_ship_speed,true,this->grid_x);
+    InvaderShip ship(10.f,10.f,default_ship_speed,true,this->grid_x - 10.f);
     this->enemyShips.push_back(ship);
 
     this->game_context_control.unlock();
@@ -246,9 +254,10 @@ void Canvas::spawnEnemies()
 
 void Canvas::invaderShot(Invader &invader)
 {
-    auto position = invader.getRectangle().getPosition();
-    float x = position.x + (float)(INVADER_WIDTH/2);
-    float y = position.y + (float)(INVADER_HEIGHT/2);
+    auto  rectangle = invader.getRectangle();
+    //we are going to shut from the middle of invader     
+    float x         = rectangle.getPosition().x + rectangle.width/2.0f;
+    float y         = rectangle.getPosition().y + rectangle.height/2.0f;
     
     int shell_index = -1;
     //check if we have available shells in array(that was already created and executed)

@@ -13,15 +13,6 @@
 
 #include "object.hpp"
 
-#define INVADER_WIDTH        (int)(20)
-#define INVADER_HEIGHT       (int)(20)
-
-#define INVADER_SHIP_WIDTH   (int)(40)
-#define INVADER__SHIP_HEIGHT (int)(20)
-
-#define SHELL_WIDTH          (int)(5)
-#define SHELL_HEIGHT         (int)(5)
-
 enum class ShellTypes
 {
     ENEMY_SHELL,
@@ -94,12 +85,29 @@ class InvaderShip : public Object
         /// @brief change object position according to internal trajectory function
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
+        /// @brief set new ship direction to move on its range
+        /// @param direction new derection 
+        void setDirection(const ItemDirection direction);
     
     private:
         /// @brief used in object trajectory
         float range;
         /// @brief previous item direction on canvas
         ItemDirection direction;
+};
+
+class PlayerShip : public Object
+{
+    public:
+        /// @brief default constructor
+        /// @param x initial coordinate for x asis
+        /// @param y initial coordinate for y asis
+        /// @param limit_x limit for move for x asis
+        /// @param limit_y limit for move for y asis
+        PlayerShip(float x, float y, float speed, float limit_x, float limit_y);
+        /// @brief move ship to selected direction
+        /// @param direction new direction 
+        void move(ItemDirection direction);
 };
 
 #endif //ITEMS_H
