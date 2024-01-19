@@ -110,9 +110,11 @@ class PlayerShip : public Object
         /// @param direction new direction 
         void setDicection(ItemDirection direction);
         void moveAlongTrajectory(unsigned int framerate);
-    
+        void setShotRequest(bool state);
+        bool getShotRequest();
     private:
         bool invincible;
+        bool shot_request;
         ItemDirection direction;
         float limit_x;
         float limit_y;

@@ -178,8 +178,9 @@ PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit
     this->speed   = speed;
     this->limit_x = limit_x;
     this->limit_y = limit_y;
-    this->invincible = true;
-    this->direction = ItemDirection::RIGHT;
+    this->invincible   = true;
+    this->shot_request = false;
+    this->direction = ItemDirection::NONE;
     
     this->setPosition(x,y);
     this->sprite.setTexture(this->texture);
@@ -194,10 +195,6 @@ void PlayerShip::setDicection(ItemDirection direction)
 
 void PlayerShip::moveAlongTrajectory(unsigned int framerate)
 {
-    // Invader ship trajectory:
-    //  n steps, depends on this->range
-    // --------------->
-    // <--------------|
     float distance = 0.f;
     auto rectangle = this->getRectangle(); 
     auto position  = rectangle.getPosition();
@@ -224,4 +221,14 @@ void PlayerShip::moveAlongTrajectory(unsigned int framerate)
         default:
             break;
     }
+}
+
+void PlayerShip::setShotRequest(bool state)
+{
+    this->shot_request = state;
+}
+
+bool PlayerShip::getShotRequest()
+{
+    return this->shot_request;
 }

@@ -77,6 +77,7 @@ class Canvas
         /// @brief make enemy invader to shot
         /// @param invader reference to invader instance
         void invaderShot(Invader& invader);
+        void playerShot();
 };      
 
 #endif //CANVAS_H
