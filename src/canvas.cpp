@@ -281,6 +281,8 @@ void Canvas::invaderShot(Invader &invader)
     
     int shell_index = -1;
     //check if we have available shells in array(that was already created and executed)
+    auto it = std::find_if(this->bullets.begin(),this->bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
+    /*
     for(auto i = 0; i < this->bullets.size(); i++)
     {
         if(this->bullets[i].isVisible() == false)
@@ -289,11 +291,12 @@ void Canvas::invaderShot(Invader &invader)
             break;
         }
     }
-    if(shell_index != -1)
+    */
+    if(it != this->bullets.end())
     {
-        this->bullets[shell_index].setShellType(ShellTypes::ENEMY_SHELL);
-        this->bullets[shell_index].setPosition(x,y);
-        this->bullets[shell_index].setVisible();
+        it->setShellType(ShellTypes::ENEMY_SHELL);
+        it->setPosition(x,y);
+        it->setVisible();
     }
     else
     {
