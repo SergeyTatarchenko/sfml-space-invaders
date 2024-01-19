@@ -13,23 +13,21 @@
 
 #include "canvas.hpp"
 #include "items.hpp"
+
+#define MAX_FRAMERATE (unsigned int)(120)
+
 //window title and game name
 static const sf::String title = "Space Invaders";
-
 //default size for coordinates for main view
 static const float default_x_size = 1000.f;
 static const float default_y_size = 1000.f;
-
 //game event tick
 static const int game_event_tick_ms = 50;
-
 //max 20 items per one row
 static const float grid_row_step = default_x_size/20.f;
-
 //invaders constants for grid and speed
 static const int   invaders_in_row       = 18;
 static const int   rows_with_invaders    = 2;
-
 //speed setup
 static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
 static const float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
@@ -38,13 +36,15 @@ static const float default_shell_speed   = (default_x_size + default_y_size)/(2.
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
     this->framerate = framerate;
-    this->grid_x = default_x_size;
-    this->grid_y = default_y_size;
+    this->grid_x    = default_x_size;
+    this->grid_y    = default_y_size;
     this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
+    this->player    = new PlayerShip(10.f,950.f,default_ship_speed,this->grid_x,this->grid_y);
+
     if(this->p_window->isOpen() == true)
     {
         this->game_in_progress.store(true,std::memory_order_relaxed);
-        this->p_graphic_thread    = new std::thread(&Canvas::graphicThreadHandler,this);
+        this->p_graphic_thread = new std::thread(&Canvas::graphicThreadHandler,this);
         //disable window control (it will be controlled in p_graphic_thread)
         this->p_window->setActive(false); 
     }
@@ -58,9 +58,7 @@ Canvas::~Canvas()
 }
 
 void Canvas::windowEventHandler()
-{
-    using namespace std::chrono_literals;
-    
+{    
     // we will exit this function only if window was requested to be closed
     while (this->p_window->isOpen())
     {
@@ -69,10 +67,7 @@ void Canvas::windowEventHandler()
         while(stat == true)
         {
             stat = this->p_window->pollEvent(event);
-            if(stat == true)
-            {
-                this->eventExecutor(event);
-            }
+            if(stat == true){this->eventExecutor(event);}
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
     }
@@ -80,30 +75,23 @@ void Canvas::windowEventHandler()
 
 void Canvas::updateCanvas()
 {
-    //update enemies
+    //update enemies 
     for(auto i = 0; i < this->enemies.size(); i++)
     {
-        if(this->enemies[i].isVisible() == true)
-        {
-            this->p_window->draw(this->enemies[i].getSprite());
-        }
+        if(this->enemies[i].isVisible() == true){this->p_window->draw(this->enemies[i].getSprite());}
     }
     //update bullets
     for(auto i = 0; i < this->bullets.size(); i++)
     {
-        if(this->bullets[i].isVisible() == true)
-        {
-            this->p_window->draw(this->bullets[i].getSprite());
-        }
+        if(this->bullets[i].isVisible() == true){this->p_window->draw(this->bullets[i].getSprite());}
     }
     //update enemy ships
     for(auto i = 0; i < this->enemyShips.size(); i++)
     {
-        if(this->enemyShips[i].isVisible() == true)
-        {
-            this->p_window->draw(this->enemyShips[i].getSprite());
-        }
+        if(this->enemyShips[i].isVisible() == true){this->p_window->draw(this->enemyShips[i].getSprite());}
     }
+    //update player ship
+    this->p_window->draw(this->player->getSprite());
 }
 
 void Canvas::updateItemsPosition()
@@ -111,27 +99,20 @@ void Canvas::updateItemsPosition()
     //update enemies
     for(auto i = 0; i < this->enemies.size(); i++)
     {
-        if(this->enemies[i].isVisible() == true)
-        {
-            this->enemies[i].moveAlongTrajectory(this->framerate);
-        }
+        if(this->enemies[i].isVisible() == true){this->enemies[i].moveAlongTrajectory(this->framerate);}
     }  
     //update bullets
     for(auto i = 0; i < this->bullets.size(); i++)
     {
-        if(this->bullets[i].isVisible() == true)
-        {
-            this->bullets[i].moveAlongTrajectory(this->framerate);
-        }
+        if(this->bullets[i].isVisible() == true){this->bullets[i].moveAlongTrajectory(this->framerate);}
     }
     //update enemy ships
     for(auto i = 0; i < this->enemyShips.size(); i++)
     {
-        if(this->enemyShips[i].isVisible() == true)
-        {
-            this->enemyShips[i].moveAlongTrajectory(this->framerate);
-        }
+        if(this->enemyShips[i].isVisible() == true){this->enemyShips[i].moveAlongTrajectory(this->framerate);}
     }
+    //update player ship
+    this->player->moveAlongTrajectory(this->framerate);
 }
 
 void Canvas::controlItemsPosition()
@@ -193,7 +174,6 @@ void Canvas::gameEventGenerator()
             counter = 0;
             while(this->game_context_control.try_lock() == false){}
             auto index = rand() % this->enemies.size();
-            std::cout<<"vector size : "<<this->bullets.size()<<std::endl;
             this->invaderShot(this->enemies[index]);
             this->game_context_control.unlock();
         }
@@ -216,10 +196,22 @@ void Canvas::eventExecutor(const sf::Event &event)
     
     case sf::Event::KeyPressed:
         // game control
-        std::cout<<"key type : "<<event.key.code<<std::endl;
-        
+        switch(event.key.code)
+        {
+            case sf::Keyboard::Key::Left:
+                this->player->setDicection(ItemDirection::LEFT);
+                break;
+
+            case sf::Keyboard::Key::Right:
+                this->player->setDicection(ItemDirection::RIGHT);
+                break;
+        }
         break;
-    
+    case sf::Event::KeyReleased:
+        // game control
+        this->player->setDicection(ItemDirection::NONE);
+        break;
+
     default:
         break;
     }

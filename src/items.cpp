@@ -15,6 +15,9 @@
 #define INVADER_SHIP_WIDTH   (int)(40)
 #define INVADER__SHIP_HEIGHT (int)(20)
 
+#define PLAYER_SHIP_WIDTH   (int)(30)
+#define PLAYER__SHIP_HEIGHT (int)(20)
+
 #define SHELL_WIDTH          (int)(5)
 #define SHELL_HEIGHT         (int)(5)
 
@@ -171,10 +174,54 @@ void InvaderShip::setDirection(const ItemDirection direction)
 
 PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit_y)
 {
+    this->visible = true;
+    this->speed   = speed;
+    this->limit_x = limit_x;
+    this->limit_y = limit_y;
+    this->invincible = true;
+    this->direction = ItemDirection::RIGHT;
     
+    this->setPosition(x,y);
+    this->sprite.setTexture(this->texture);
+    sprite.setTextureRect(sf::IntRect(0, 0, PLAYER_SHIP_WIDTH, PLAYER__SHIP_HEIGHT));
+    this->sprite.setColor(sf::Color::White);
 }
 
-void PlayerShip::move(ItemDirection direction)
+void PlayerShip::setDicection(ItemDirection direction)
 {
+    this->direction = direction;
+}
 
+void PlayerShip::moveAlongTrajectory(unsigned int framerate)
+{
+    // Invader ship trajectory:
+    //  n steps, depends on this->range
+    // --------------->
+    // <--------------|
+    float distance = 0.f;
+    auto rectangle = this->getRectangle(); 
+    auto position  = rectangle.getPosition();
+    
+    if(framerate != 0){distance = this->speed/framerate;}
+    else{return;}
+
+    switch(this->direction)
+    {
+        case ItemDirection::RIGHT:
+            if((position.x + distance + rectangle.width) < (this->def_x + this->limit_x))
+            {
+                this->sprite.move(distance,0.f);
+            }
+            break;
+
+        case ItemDirection::LEFT:
+            if((position.x - distance) > this->def_x)
+            {
+                this->sprite.move(distance * (-1.f),0.f);
+            }
+            break;
+
+        default:
+            break;
+    }
 }

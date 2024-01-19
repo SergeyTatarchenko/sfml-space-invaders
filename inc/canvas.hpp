@@ -20,8 +20,6 @@
 #include <SFML/Graphics.hpp>
 #include "items.hpp"
 
-#define MAX_FRAMERATE (unsigned int)(120)
-
 class Canvas
 {
     public:
@@ -44,6 +42,7 @@ class Canvas
         /// @brief vector with invader instances
         std::vector<Invader> enemies;
         std::vector<InvaderShip> enemyShips;        
+        PlayerShip* player;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
         /// @brief actual canvas framerate

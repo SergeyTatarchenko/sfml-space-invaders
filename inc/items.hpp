@@ -21,6 +21,7 @@ enum class ShellTypes
 
 enum class ItemDirection
 {
+    NONE,
     LEFT,
     RIGHT,
     UP,
@@ -107,7 +108,14 @@ class PlayerShip : public Object
         PlayerShip(float x, float y, float speed, float limit_x, float limit_y);
         /// @brief move ship to selected direction
         /// @param direction new direction 
-        void move(ItemDirection direction);
+        void setDicection(ItemDirection direction);
+        void moveAlongTrajectory(unsigned int framerate);
+    
+    private:
+        bool invincible;
+        ItemDirection direction;
+        float limit_x;
+        float limit_y;
 };
 
 #endif //ITEMS_H
