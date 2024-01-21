@@ -87,7 +87,7 @@ class InvaderShip : public Object
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
         /// @brief set new ship direction to move on its range
-        /// @param direction new derection 
+        /// @param direction new direction 
         void setDirection(const ItemDirection direction);
     
     private:
@@ -108,7 +108,7 @@ class PlayerShip : public Object
         PlayerShip(float x, float y, float speed, float limit_x, float limit_y);
         /// @brief move ship to selected direction
         /// @param direction new direction 
-        void setDicection(ItemDirection direction);
+        void setDirection(ItemDirection direction);
         void moveAlongTrajectory(unsigned int framerate);
         void setShotRequest(bool state);
         bool getShotRequest();

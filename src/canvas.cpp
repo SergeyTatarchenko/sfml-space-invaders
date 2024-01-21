@@ -178,7 +178,8 @@ void Canvas::gameEventGenerator()
             counter = 0;
             while(this->game_context_control.try_lock() == false){}
             auto index = rand() % this->enemies.size();
-            this->invaderShot(this->enemies[index]);
+            const auto rectangle = this->enemies[index].getRectangle();
+            this->objectShot(rectangle,ShellTypes::ENEMY_SHELL);
             this->game_context_control.unlock();
         }
         if(this->player->getShotRequest() == true)
@@ -186,7 +187,8 @@ void Canvas::gameEventGenerator()
             this->player->setShotRequest(false);
 
             while(this->game_context_control.try_lock() == false){}
-            this->playerShot();
+            const auto rectangle = this->player->getRectangle();
+            this->objectShot(rectangle,ShellTypes::PLAYER_SHELL);
             this->game_context_control.unlock();
         }
     }
@@ -212,11 +214,11 @@ void Canvas::eventExecutor(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    this->player->setDicection(ItemDirection::LEFT);
+                    this->player->setDirection(ItemDirection::LEFT);
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    this->player->setDicection(ItemDirection::RIGHT);
+                    this->player->setDirection(ItemDirection::RIGHT);
                     break;
                 case sf::Keyboard::Key::Space:
                     if(player_reload == false)
@@ -233,7 +235,7 @@ void Canvas::eventExecutor(const sf::Event &event)
             {
                 case sf::Keyboard::Key::Left:
                 case sf::Keyboard::Key::Right:
-                    this->player->setDicection(ItemDirection::NONE);
+                    this->player->setDirection(ItemDirection::NONE);
                     break;
                 case sf::Keyboard::Key::Space:
                     if(player_reload == true){player_reload = false;}
@@ -242,6 +244,28 @@ void Canvas::eventExecutor(const sf::Event &event)
             break;
     default:
         break;
+    }
+}
+
+void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellTypes shell_type)
+{
+    //we are going to shut from the middle of the object     
+    float x = rectangle.getPosition().x + rectangle.width/2.0f;
+    float y = rectangle.getPosition().y + rectangle.height/2.0f;
+    //check if we have available shells in array(that was already created and executed)
+    auto it = std::find_if(this->bullets.begin(),this->bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
+    if(it != this->bullets.end())
+    {
+        //use existed one
+        it->setShellType(shell_type);
+        it->setPosition(x,y);
+        it->setVisible();
+    }
+    else
+    {
+        //create new and add to array
+        Shell shell(x,y,default_shell_speed,shell_type);    
+        this->bullets.push_back(shell);
     }
 }
 
@@ -272,65 +296,3 @@ void Canvas::spawnEnemies()
     this->game_context_control.unlock();
 }
 
-void Canvas::invaderShot(Invader &invader)
-{
-    auto  rectangle = invader.getRectangle();
-    //we are going to shut from the middle of invader     
-    float x         = rectangle.getPosition().x + rectangle.width/2.0f;
-    float y         = rectangle.getPosition().y + rectangle.height/2.0f;
-    
-    int shell_index = -1;
-    //check if we have available shells in array(that was already created and executed)
-    auto it = std::find_if(this->bullets.begin(),this->bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
-    /*
-    for(auto i = 0; i < this->bullets.size(); i++)
-    {
-        if(this->bullets[i].isVisible() == false)
-        {
-            shell_index = i;
-            break;
-        }
-    }
-    */
-    if(it != this->bullets.end())
-    {
-        it->setShellType(ShellTypes::ENEMY_SHELL);
-        it->setPosition(x,y);
-        it->setVisible();
-    }
-    else
-    {
-        Shell shell(x,y,default_shell_speed,ShellTypes::ENEMY_SHELL);    
-        this->bullets.push_back(shell);
-    }
-}
-
-void Canvas::playerShot()
-{
-    auto  rectangle = this->player->getRectangle();
-    //we are going to shut from the middle of player    
-    float x         = rectangle.getPosition().x + rectangle.width/2.0f;
-    float y         = rectangle.getPosition().y + rectangle.height/2.0f;
-    
-    int shell_index = -1;
-    //check if we have available shells in array(that was already created and executed)
-    for(auto i = 0; i < this->bullets.size(); i++)
-    {
-        if(this->bullets[i].isVisible() == false)
-        {
-            shell_index = i;
-            break;
-        }
-    }
-    if(shell_index != -1)
-    {
-        this->bullets[shell_index].setShellType(ShellTypes::PLAYER_SHELL);
-        this->bullets[shell_index].setPosition(x,y);
-        this->bullets[shell_index].setVisible();
-    }
-    else
-    {
-        Shell shell(x,y,default_shell_speed,ShellTypes::PLAYER_SHELL);    
-        this->bullets.push_back(shell);
-    }
-}

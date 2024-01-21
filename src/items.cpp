@@ -188,7 +188,7 @@ PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit
     this->sprite.setColor(sf::Color::White);
 }
 
-void PlayerShip::setDicection(ItemDirection direction)
+void PlayerShip::setDirection(ItemDirection direction)
 {
     this->direction = direction;
 }

@@ -74,10 +74,7 @@ class Canvas
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void eventExecutor(const sf::Event& event);
-        /// @brief make enemy invader to shot
-        /// @param invader reference to invader instance
-        void invaderShot(Invader& invader);
-        void playerShot();
+        void objectShot(const sf::FloatRect& rectangle, const ShellTypes shell_type);
 };      
 
 #endif //CANVAS_H
