@@ -26,10 +26,10 @@ class Object
         void setInvisible();
         /// @brief check if object visible or not
         /// @return true if visible false if not
-        const bool isVisible();
+        bool isVisible();
         /// @brief get reference to object outline
         /// @return const reference to actual outline
-        const sf::FloatRect& getRectangle();
+        sf::FloatRect getRectangle();
         /// @brief get reference to object sprite
         /// @return const reference to sf::Sprite type class member
         const sf::Sprite& getSprite();
@@ -39,8 +39,6 @@ class Object
         sf::Sprite sprite;
         /// @brief object with loaded texture
         sf::Texture texture;
-        /// @brief object outline, updated to actual one after getRectangle request
-        sf::FloatRect outline;
         /// @brief object state flag, whether it will be displayed in coordinates or not.
         bool visible;
         /// @brief object speed in coordinates per second

@@ -81,19 +81,19 @@ void Canvas::windowEventHandler()
 void Canvas::updateCanvas()
 {
     //update enemies 
-    for(auto i = 0; i < this->enemies.size(); i++)
+    for (Invader& enemy : this->enemies)
     {
-        if(this->enemies[i].isVisible() == true){this->p_window->draw(this->enemies[i].getSprite());}
+        if(enemy.isVisible() == true){this->p_window->draw(enemy.getSprite());}
     }
     //update bullets
-    for(auto i = 0; i < this->bullets.size(); i++)
+    for (Shell& shell : this->bullets)
     {
-        if(this->bullets[i].isVisible() == true){this->p_window->draw(this->bullets[i].getSprite());}
+        if(shell.isVisible() == true){this->p_window->draw(shell.getSprite());}
     }
     //update enemy ships
-    for(auto i = 0; i < this->enemyShips.size(); i++)
+    for (InvaderShip& ship : this->enemyShips)
     {
-        if(this->enemyShips[i].isVisible() == true){this->p_window->draw(this->enemyShips[i].getSprite());}
+        if(ship.isVisible() == true){this->p_window->draw(ship.getSprite());}
     }
     //update player ship
     this->p_window->draw(this->player->getSprite());
@@ -232,6 +232,9 @@ void Canvas::eventExecutor(const sf::Event &event)
                         player_reload = true;
                     }
                     break;
+                
+                default:
+                    break;
             }
             break;
         
@@ -249,12 +252,16 @@ void Canvas::eventExecutor(const sf::Event &event)
                 case sf::Keyboard::Key::Space:
                     if(player_reload == true){player_reload = false;}
                     break;
+                
+                default:
+                    break;
             }
             if((left_pressed == false) && (right_pressed == false))
             {
                 this->player->setDirection(ItemDirection::NONE);
             }
             break;
+
     default:
         break;
     }

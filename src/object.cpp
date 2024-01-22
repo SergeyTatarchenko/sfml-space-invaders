@@ -26,15 +26,14 @@ void Object::setInvisible()
     this->visible = false;
 }
 
-const bool Object::isVisible()
+bool Object::isVisible()
 {
     return this->visible;
 }
 
-const sf::FloatRect &Object::getRectangle()
+sf::FloatRect Object::getRectangle()
 {
-    this->outline = this->sprite.getGlobalBounds();
-    return this->outline;
+    return this->sprite.getGlobalBounds();
 }
 
 const sf::Sprite &Object::getSprite()
