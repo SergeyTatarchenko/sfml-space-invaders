@@ -197,6 +197,8 @@ void Canvas::gameEventGenerator()
 void Canvas::eventExecutor(const sf::Event &event)
 {
     static bool player_reload = false;
+    static bool left_pressed  = false;
+    static bool right_pressed = false;
 
     switch (event.type)
     {
@@ -210,16 +212,19 @@ void Canvas::eventExecutor(const sf::Event &event)
             break;
     
         case sf::Event::KeyPressed:
-            // game control
+            // game controls
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    this->player->setDirection(ItemDirection::LEFT);
+                    left_pressed = true;
+                    if(right_pressed == false){this->player->setDirection(ItemDirection::LEFT);}
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    this->player->setDirection(ItemDirection::RIGHT);
+                    right_pressed = true;
+                    if(left_pressed == false){this->player->setDirection(ItemDirection::RIGHT);}
                     break;
+
                 case sf::Keyboard::Key::Space:
                     if(player_reload == false)
                     {
@@ -234,12 +239,20 @@ void Canvas::eventExecutor(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                case sf::Keyboard::Key::Right:
-                    this->player->setDirection(ItemDirection::NONE);
+                    left_pressed = false;
                     break;
+
+                case sf::Keyboard::Key::Right:
+                    right_pressed = false;
+                    break;
+
                 case sf::Keyboard::Key::Space:
                     if(player_reload == true){player_reload = false;}
                     break;
+            }
+            if((left_pressed == false) && (right_pressed == false))
+            {
+                this->player->setDirection(ItemDirection::NONE);
             }
             break;
     default:
