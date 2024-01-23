@@ -13,10 +13,10 @@
 
 #include "object.hpp"
 
-enum class ShellTypes
+enum class ShellType
 {
-    ENEMY_SHELL,
-    PLAYER_SHELL
+    ENEMY,
+    PLAYER
 };
 
 enum class ItemDirection
@@ -55,23 +55,20 @@ class Shell : public Object
         /// @param y initial coordinate for y asis
         /// @param speed object speed on canvas
         /// @param shell_type shell type (who shot)
-        Shell(float x, float y, float speed, ShellTypes shell_type);
+        Shell(float x, float y, float speed, ShellType shell_type);
         /// @brief check instance shell type
         /// @return enum class with ShellTypes
-        const ShellTypes getShellType();
-        /// @brief update shell speed
-        /// @param speed new speed
-        void setSpeed(const float speed);
+        ShellType getShellType();
         /// @brief change shell type of the instance
         /// @param new_type new shell type from ShellTypes
-        void setShellType(const ShellTypes new_type);
+        void setShellType(const ShellType new_type);
         /// @brief change object position according to internal trajectory function
         /// @param framerate  canvas framerate
         void moveAlongTrajectory(unsigned int framerate);
     
     private:
         /// @brief shell type (who shot this shell)
-        ShellTypes shell_type;
+        ShellType shell_type;
 };
 
 class InvaderShip : public Object

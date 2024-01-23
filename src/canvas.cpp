@@ -26,7 +26,7 @@ static const float default_y_size  = 1000.f;
 //border size arround game field
 static const float default_border_size = 50.f;
 //game event tick
-static const int game_event_tick_ms = 50;
+static const int game_event_tick_ms = 500;
 //max 20 items per one row
 static const float grid_row_step = default_x_size/20.f;
 //invaders constants for grid and speed
@@ -101,20 +101,20 @@ void Canvas::updateCanvas()
 
 void Canvas::updateItemsPosition()
 {
-    //update enemies
-    for(auto i = 0; i < this->enemies.size(); i++)
+    //update enemies 
+    for (Invader& enemy : enemies)
     {
-        if(this->enemies[i].isVisible() == true){this->enemies[i].moveAlongTrajectory(this->framerate);}
-    }  
+        if(enemy.isVisible() == true){enemy.moveAlongTrajectory(this->framerate);}
+    }
     //update bullets
-    for(auto i = 0; i < this->bullets.size(); i++)
+    for (Shell& shell : bullets)
     {
-        if(this->bullets[i].isVisible() == true){this->bullets[i].moveAlongTrajectory(this->framerate);}
+        if(shell.isVisible() == true){shell.moveAlongTrajectory(this->framerate);}
     }
     //update enemy ships
-    for(auto i = 0; i < this->enemyShips.size(); i++)
+    for (InvaderShip& ship : enemyShips)
     {
-        if(this->enemyShips[i].isVisible() == true){this->enemyShips[i].moveAlongTrajectory(this->framerate);}
+        if(ship.isVisible() == true){ship.moveAlongTrajectory(this->framerate);}
     }
     //update player ship
     this->player->moveAlongTrajectory(this->framerate);
@@ -123,14 +123,14 @@ void Canvas::updateItemsPosition()
 void Canvas::controlItemsPosition()
 {
     //bullets control
-    for(auto i = 0; i < this->bullets.size(); i++)
+    for (Shell& shell : bullets)
     {
-        auto position = this->bullets[i].getRectangle().getPosition();
-        if((position.x > this->grid_x) || (position.x < default_start_x) ||
-           (position.y > this->grid_y) || (position.y < default_start_y)
+        auto position = shell.getRectangle().getPosition();
+        if((position.x > grid_x) || (position.x < default_start_x) ||
+           (position.y > grid_y) || (position.y < default_start_y)
           )
         {
-            this->bullets[i].setInvisible();
+            shell.setInvisible();
         }
     }
 }
@@ -168,10 +168,18 @@ void Canvas::graphicThreadHandler()
 void Canvas::gameEventGenerator()
 {
     static uint32_t counter = 0;   
+    std::chrono::_V2::system_clock::time_point actual;
+    std::chrono::_V2::system_clock::time_point previous = std::chrono::system_clock::now();
+
+    std::chrono::duration<double> elapsed_seconds;
+
     // we will exit this function only if window was requested to be closed
     while (this->game_in_progress.load(std::memory_order_relaxed) == true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
+        actual  = std::chrono::system_clock::now();
+        elapsed_seconds = actual - previous;
+        std::cout<< "elapsed time: " << elapsed_seconds.count() << " s"<< "\n";
         counter++;
         if((counter % 20) == 0)
         {
@@ -179,7 +187,7 @@ void Canvas::gameEventGenerator()
             while(this->game_context_control.try_lock() == false){}
             auto index = rand() % this->enemies.size();
             const auto rectangle = this->enemies[index].getRectangle();
-            this->objectShot(rectangle,ShellTypes::ENEMY_SHELL);
+            this->objectShot(rectangle,ShellType::ENEMY);
             this->game_context_control.unlock();
         }
         if(this->player->getShotRequest() == true)
@@ -188,9 +196,10 @@ void Canvas::gameEventGenerator()
 
             while(this->game_context_control.try_lock() == false){}
             const auto rectangle = this->player->getRectangle();
-            this->objectShot(rectangle,ShellTypes::PLAYER_SHELL);
+            this->objectShot(rectangle,ShellType::PLAYER);
             this->game_context_control.unlock();
         }
+        previous = actual;
     }
 }
 
@@ -267,14 +276,14 @@ void Canvas::eventExecutor(const sf::Event &event)
     }
 }
 
-void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellTypes shell_type)
+void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_type)
 {
     //we are going to shut from the middle of the object     
     float x = rectangle.getPosition().x + rectangle.width/2.0f;
     float y = rectangle.getPosition().y + rectangle.height/2.0f;
     //check if we have available shells in array(that was already created and executed)
-    auto it = std::find_if(this->bullets.begin(),this->bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
-    if(it != this->bullets.end())
+    auto it = std::find_if(bullets.begin(),bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
+    if(it != bullets.end())
     {
         //use existed one
         it->setShellType(shell_type);
@@ -283,9 +292,8 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellTypes shell_t
     }
     else
     {
-        //create new and add to array
-        Shell shell(x,y,default_shell_speed,shell_type);    
-        this->bullets.push_back(shell);
+        //create new one
+        bullets.emplace_back(x,y,default_shell_speed,shell_type);
     }
 }
 

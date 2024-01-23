@@ -9,47 +9,44 @@
  */
 #include "items.hpp"
 
-#define INVADER_WIDTH        (int)(20)
-#define INVADER_HEIGHT       (int)(20)
-
-#define INVADER_SHIP_WIDTH   (int)(40)
-#define INVADER__SHIP_HEIGHT (int)(20)
-
-#define PLAYER_SHIP_WIDTH   (int)(30)
-#define PLAYER__SHIP_HEIGHT (int)(20)
-
-#define SHELL_WIDTH          (int)(5)
-#define SHELL_HEIGHT         (int)(5)
+//default invader dimensions
+constexpr int invader_width       = 20;
+constexpr int invader_height      = 20;
+//default shell dimensions
+constexpr int shell_width         = 5;
+constexpr int shell_height        = 5;
+//default invader ship dimensions
+constexpr int invader_ship_width  = 40;
+constexpr int invader_ship_height = 20;
+//default player ship dimensions
+constexpr int player_ship_width   = 30;
+constexpr int player_ship_height  = 20;
 
 Invader::Invader(float x, float y, float speed, bool visible)
 {
-    this->visible          = visible;
-    this->speed            = speed;
-    this->position_counter = 0; 
-    this->setPosition(x,y);
-
-    this->sprite.setTexture(this->texture);
-    sprite.setTextureRect(sf::IntRect(0, 0, INVADER_WIDTH, INVADER_HEIGHT));
-    this->sprite.setColor(sf::Color::White);
+    position_counter = 0; 
+    setPosition(x,y);
+    setParameters(speed,visible);
+    setTexture("path to the texture");
+    setSpriteRectangle(sf::IntRect(0, 0, invader_width, invader_height));
 }
 
 void Invader::moveAlongTrajectory(unsigned int framerate)
 {
-    static const int step_x = 10;
-    static const int step_y = 10;
-    
-    float distance = 0.f;
-    if(framerate != 0)
-    {
-        distance = this->speed/framerate;
-    }
     // Invader trajectory:
     //  10 steps
     // --------------->
     // |              |   
     // |              | 2 steps
     // <--------------|
-    
+    const int step_x = 10;
+    const int step_y = 10;
+
+    float distance = 0.f;
+    if(framerate != 0)
+    {
+        distance = this->speed/framerate;
+    }    
     if(this->position_counter < step_x){this->sprite.move(distance,0.f);}
     else if (this->position_counter < (step_x + step_y)){this->sprite.move(0.f,distance);}
     else if (this->position_counter < (2*step_x + step_y)){this->sprite.move(distance * (-1.f),0.f);}
@@ -62,29 +59,21 @@ void Invader::moveAlongTrajectory(unsigned int framerate)
     }
 }
 
-Shell::Shell(float x, float y, float speed, ShellTypes shell_type)
+Shell::Shell(float x, float y, float speed, ShellType shell_type)
 {
     this->shell_type = shell_type;
-    this->visible    = true;
-    this->speed      = speed; 
     this->setPosition(x,y);
-    
-    this->sprite.setTexture(this->texture);
-    sprite.setTextureRect(sf::IntRect(0, 0, SHELL_WIDTH, SHELL_HEIGHT));
-    this->sprite.setColor(sf::Color::White);
+    setParameters(speed,true); 
+    setTexture("path to the texture");
+    setSpriteRectangle(sf::IntRect(0, 0, shell_width, shell_height));
 }
 
-const ShellTypes Shell::getShellType()
+ShellType Shell::getShellType()
 {
     return this->shell_type;
 }
 
-void Shell::setSpeed(const float speed)
-{
-    this->speed = speed;
-}
-
-void Shell::setShellType(const ShellTypes new_type)
+void Shell::setShellType(const ShellType new_type)
 {
     this->shell_type = new_type;
 }
@@ -104,10 +93,10 @@ void Shell::moveAlongTrajectory(unsigned int framerate)
 
     switch(this->shell_type)
     {
-        case ShellTypes::ENEMY_SHELL:
+        case ShellType::ENEMY:
             this->sprite.move(0.f,distance);
             break;
-        case ShellTypes::PLAYER_SHELL:
+        case ShellType::PLAYER:
             this->sprite.move(0.f,distance* (-1.f));
             break;
         default:
@@ -117,16 +106,14 @@ void Shell::moveAlongTrajectory(unsigned int framerate)
 
 InvaderShip::InvaderShip(float x, float y, float speed, bool visible, float range)
 {
-    this->visible = visible;
-    this->speed   = speed;
-    this->range   = range;
     //start with move right
     this->direction = ItemDirection::RIGHT;
+    this->range   = range;
     this->setPosition(x,y);
-
-    this->sprite.setTexture(this->texture);
-    sprite.setTextureRect(sf::IntRect(0, 0, INVADER_SHIP_WIDTH, INVADER__SHIP_HEIGHT));
-    this->sprite.setColor(sf::Color::White);
+    setParameters(speed,visible); 
+    this->setPosition(x,y);
+    setTexture("path to the texture");
+    setSpriteRectangle(sf::IntRect(0, 0, invader_ship_width, invader_ship_height));
 }
 
 void InvaderShip::moveAlongTrajectory(unsigned int framerate)
@@ -183,9 +170,8 @@ PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit
     this->direction = ItemDirection::NONE;
     
     this->setPosition(x,y);
-    this->sprite.setTexture(this->texture);
-    sprite.setTextureRect(sf::IntRect(0, 0, PLAYER_SHIP_WIDTH, PLAYER__SHIP_HEIGHT));
-    this->sprite.setColor(sf::Color::White);
+    setTexture("path to the texture");
+    setSpriteRectangle(sf::IntRect(0, 0, player_ship_width, player_ship_height));
 }
 
 void PlayerShip::setDirection(ItemDirection direction)

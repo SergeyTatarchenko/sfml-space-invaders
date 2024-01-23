@@ -74,7 +74,7 @@ class Canvas
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void eventExecutor(const sf::Event& event);
-        void objectShot(const sf::FloatRect& rectangle, const ShellTypes shell_type);
+        void objectShot(const sf::FloatRect& rectangle, const ShellType shell_type);
 };      
 
 #endif //CANVAS_H
