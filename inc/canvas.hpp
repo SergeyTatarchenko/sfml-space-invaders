@@ -20,6 +20,14 @@
 #include <SFML/Graphics.hpp>
 #include "items.hpp"
 
+struct Timer
+{
+    std::chrono::_V2::system_clock::time_point actual_time;
+    std::chrono::_V2::system_clock::time_point previous_time;
+    std::chrono::milliseconds step;
+    std::chrono::milliseconds deviation;
+};
+
 class Canvas
 {
     public:
@@ -39,6 +47,7 @@ class Canvas
         void spawnEnemies();
         
     private:
+        Timer timer;
         /// @brief vector with invader instances
         std::vector<Invader> enemies;
         std::vector<InvaderShip> enemyShips;        

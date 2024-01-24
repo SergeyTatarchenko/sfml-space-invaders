@@ -70,12 +70,12 @@ Shell::Shell(float x, float y, float speed, ShellType shell_type)
 
 ShellType Shell::getShellType()
 {
-    return this->shell_type;
+    return shell_type;
 }
 
 void Shell::setShellType(const ShellType new_type)
 {
-    this->shell_type = new_type;
+    shell_type = new_type;
 }
 
 void Shell::moveAlongTrajectory(unsigned int framerate)

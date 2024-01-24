@@ -16,31 +16,34 @@
 
 #define MAX_FRAMERATE (unsigned int)(120)
 
-//window title and game name
+//window title
 static const sf::String title = "Space Invaders";
 //default size for coordinates for main view
-static const float default_start_x = 0.f;
-static const float default_start_y = 0.f;
-static const float default_x_size  = 1000.f;
-static const float default_y_size  = 1000.f;
+constexpr float default_start_x = 0.f;
+constexpr float default_start_y = 0.f;
+constexpr float default_x_size  = 1000.f;
+constexpr float default_y_size  = 1000.f;
 //border size arround game field
-static const float default_border_size = 50.f;
+constexpr float default_border_size = 50.f;
 //game event tick
-static const int game_event_tick_ms = 500;
+constexpr int game_event_tick_ms = 50;
 //max 20 items per one row
-static const float grid_row_step = default_x_size/20.f;
+constexpr float grid_row_step = default_x_size/20.f;
 //invaders constants for grid and speed
-static const int   invaders_in_row       = 18;
-static const int   rows_with_invaders    = 2;
+constexpr int   invaders_in_row       = 18;
+constexpr int   rows_with_invaders    = 2;
 //speed setup
-static const float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
-static const float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
-static const float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
-static const float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
+constexpr float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
+constexpr float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
+constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
+constexpr float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
+    using namespace std::chrono_literals;
     this->framerate = framerate;
+    timer.step = 1ms*(1000/framerate);
+
     this->grid_x    = default_x_size;
     this->grid_y    = default_y_size;
     this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
@@ -143,12 +146,20 @@ void Canvas::updateFramerate(const unsigned int framerate)
 
 void Canvas::graphicThreadHandler()
 {
+    using namespace std::chrono_literals;
+    timer.previous_time = std::chrono::system_clock::now();
     //obtain control on window
     if(this->p_window->setActive(true) == true)
     {
         // all graphic drawings are here
         while (this->game_in_progress.load(std::memory_order_relaxed) == true)
         {
+            timer.actual_time  = std::chrono::system_clock::now();
+            auto actual_period = timer.actual_time - timer.previous_time;
+            auto actual_framerate = 1000/std::chrono::duration_cast<std::chrono::milliseconds>(actual_period).count();
+            std::cout<<"actual framerate : "<<actual_framerate<<"\n";
+            
+            timer.deviation = std::chrono::duration_cast<std::chrono::milliseconds>(actual_period) - timer.step;
             sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
             this->p_window->setView(view);
             this->p_window->clear(sf::Color::Black); 
@@ -158,8 +169,12 @@ void Canvas::graphicThreadHandler()
             this->controlItemsPosition();
             this->updateItemsPosition();
             this->game_context_control.unlock();
-            unsigned int delay_per_frame = 1000/this->framerate;
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_per_frame));
+            timer.previous_time = timer.actual_time;
+
+            if((timer.step - timer.deviation).count() > 0)
+            {
+                std::this_thread::sleep_for(timer.step);
+            }
         }
         this->p_window->setActive(false);
     }
@@ -167,19 +182,14 @@ void Canvas::graphicThreadHandler()
 
 void Canvas::gameEventGenerator()
 {
+
+
     static uint32_t counter = 0;   
-    std::chrono::_V2::system_clock::time_point actual;
-    std::chrono::_V2::system_clock::time_point previous = std::chrono::system_clock::now();
-
-    std::chrono::duration<double> elapsed_seconds;
-
+    
     // we will exit this function only if window was requested to be closed
     while (this->game_in_progress.load(std::memory_order_relaxed) == true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
-        actual  = std::chrono::system_clock::now();
-        elapsed_seconds = actual - previous;
-        std::cout<< "elapsed time: " << elapsed_seconds.count() << " s"<< "\n";
         counter++;
         if((counter % 20) == 0)
         {
@@ -199,7 +209,6 @@ void Canvas::gameEventGenerator()
             this->objectShot(rectangle,ShellType::PLAYER);
             this->game_context_control.unlock();
         }
-        previous = actual;
     }
 }
 
