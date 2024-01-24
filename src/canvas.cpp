@@ -23,7 +23,7 @@ constexpr float default_start_x = 0.f;
 constexpr float default_start_y = 0.f;
 constexpr float default_x_size  = 1000.f;
 constexpr float default_y_size  = 1000.f;
-//border size arround game field
+//border size around game field
 constexpr float default_border_size = 50.f;
 //game event tick
 constexpr int game_event_tick_ms = 50;
@@ -156,10 +156,7 @@ void Canvas::graphicThreadHandler()
         {
             timer.actual_time  = std::chrono::system_clock::now();
             auto actual_period = timer.actual_time - timer.previous_time;
-            auto actual_framerate = 1000/std::chrono::duration_cast<std::chrono::milliseconds>(actual_period).count();
-            std::cout<<"actual framerate : "<<actual_framerate<<"\n";
-            
-            timer.deviation = std::chrono::duration_cast<std::chrono::milliseconds>(actual_period) - timer.step;
+            timer.deviation = (std::chrono::duration_cast<std::chrono::milliseconds>(actual_period).count() * 1ms) - timer.step;
             sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
             this->p_window->setView(view);
             this->p_window->clear(sf::Color::Black); 
@@ -170,11 +167,7 @@ void Canvas::graphicThreadHandler()
             this->updateItemsPosition();
             this->game_context_control.unlock();
             timer.previous_time = timer.actual_time;
-
-            if((timer.step - timer.deviation).count() > 0)
-            {
-                std::this_thread::sleep_for(timer.step);
-            }
+            std::this_thread::sleep_for(timer.step - timer.deviation);
         }
         this->p_window->setActive(false);
     }
