@@ -8,6 +8,7 @@
  *
  */
 #include "items.hpp"
+#include <iostream> 
 
 //default invader dimensions
 constexpr int invader_width       = 20;
@@ -22,25 +23,46 @@ constexpr int invader_ship_height = 20;
 constexpr int player_ship_width   = 30;
 constexpr int player_ship_height  = 20;
 
-constexpr float invader_trajectory_length = 160.f;
-
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {
+    position_counter = 0;
     setPosition(position);
     setSpeed(speed);
     if(visible == true){setVisible();}
     else{setInvisible();}
-
+    
     setTexture("path to the texture");
     setSpriteRectangle(sf::IntRect(0, 0, invader_width, invader_height));
 }
 
 
-void Invader::updatePosition(std::chrono::milliseconds &time)
+void Invader::updatePosition()
 {
     if(isVisible() == true)
     {
+        // Invader trajectory:
+        //  10 steps
+        // ---------->
+        // |         |   
+        // |         | 10 steps
+        // <---------|
+        const int step_x = 10;
+        const int step_y = 10;
+        auto speed = getSpeed();
+        sf::Vector2 vector(0.f,0.f);
 
+        if(this->position_counter < step_x)                     {vector.x = speed;}
+        else if (this->position_counter < (step_x + step_y))    {vector.y = speed;}
+        else if (this->position_counter < (2*step_x + step_y))  {vector.x = (-1.f)*speed;}
+        else if (this->position_counter < (2*step_x + 2*step_y)){vector.y = (-1.f)*speed;}
+        
+        this->position_counter++;
+        move(vector);
+        if(this->position_counter == (2*step_x + 2*step_y))
+        {
+            this->position_counter = 0;
+            setDefaultPosition();    
+        }
     }
 }
 

@@ -29,8 +29,10 @@ class Invader : public Object
         /// @param visible object visibility on canvas
         Invader(sf::Vector2f position, float speed, bool visible);
         /// @brief change object position according to internal trajectory function
-        /// @param time time elapsed since the last position change
-        void updatePosition(std::chrono::milliseconds &time);
+        void updatePosition();
+    
+    private:
+        int position_counter;
 };
 
 class Shell : public Object

@@ -33,52 +33,44 @@ constexpr float grid_row_step = default_x_size/20.f;
 constexpr int   invaders_in_row       = 18;
 constexpr int   rows_with_invaders    = 2;
 //speed setup
-constexpr float default_invader_speed = 100.f;
+constexpr float default_invader_speed = 2.f;
+
 constexpr float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
 constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
 constexpr float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
-    using namespace std::chrono_literals;
-    this->framerate = framerate;
-    timer.step = 1ms*(1000/framerate);
-
     this->grid_x    = default_x_size;
     this->grid_y    = default_y_size;
     this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    if(this->p_window->isOpen() == true)
-    {
-        this->game_in_progress.store(true,std::memory_order_relaxed);
-        this->p_graphic_thread    = new std::thread(&Canvas::graphicThreadHandler,this);
-        this->p_game_event_thread = new std::thread(&Canvas::gameEventGenerator,this);
-        //disable window control (it will be controlled in p_graphic_thread)
-        this->p_window->setActive(false); 
-    }
+    this->p_window->setActive(true);
+    this->p_window->setFramerateLimit(framerate);
 }
 
 Canvas::~Canvas()
 {
     delete this->p_window;
-    delete this->p_graphic_thread;
-    delete this->p_game_event_thread;
 }
 
-void Canvas::windowEventHandler()
-{    
-    // we will exit this function only if window was requested to be closed
+void Canvas::gameTask()
+{
+    sf::Event event;
+
     while (this->p_window->isOpen())
     {
-        sf::Event event;
-        bool stat = true;
-        while(stat == true)
-        {
-            stat = this->p_window->pollEvent(event);
-            if(stat == true){this->eventExecutor(event);}
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
+        while(this->p_window->pollEvent(event)){executeEvent(event);}
+
+        sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
+        this->p_window->setView(view);
+        this->p_window->clear(sf::Color::Black); 
+        this->updateCanvas();
+        this->p_window->display();
+        updateItemsPosition();
+        this->controlItemsPosition();
     }
 }
+
 
 void Canvas::updateCanvas()
 {
@@ -107,12 +99,8 @@ void Canvas::updateCanvas()
 void Canvas::updateItemsPosition()
 {
     //update enemies
-    /* 
-    for (Invader& enemy : enemies)
-    {
-        if(enemy.isVisible() == true){enemy.moveAlongTrajectory(this->framerate);}
-    }
-    */
+    for (Invader& enemy : enemies){enemy.updatePosition();}
+    
     /*
     //update bullets
     for (Shell& shell : bullets)
@@ -144,27 +132,16 @@ void Canvas::controlItemsPosition()
     }
 }
 
-void Canvas::updateFramerate(const unsigned int framerate)
-{
-    if(framerate <= MAX_FRAMERATE){this->framerate = framerate;}
-    else{this->framerate = MAX_FRAMERATE;}
-}
 
 void Canvas::graphicThreadHandler()
 {
     using namespace std::chrono_literals;
-    timer.previous_time = std::chrono::system_clock::now();
     //obtain control on window
     if(this->p_window->setActive(true) == true)
     {
         // all graphic drawings are here
         while (this->game_in_progress.load(std::memory_order_relaxed) == true)
         {
-            timer.actual_time  = std::chrono::system_clock::now();
-            auto actual_period = timer.actual_time - timer.previous_time;
-            auto test  = std::chrono::duration_cast<std::chrono::milliseconds>(actual_period);
-            std::cout<<"time elapsed : "<<test.count()<<" ms"<<"\n";
-            timer.deviation = (std::chrono::duration_cast<std::chrono::milliseconds>(actual_period).count() * 1ms) - timer.step;
             sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
             this->p_window->setView(view);
             this->p_window->clear(sf::Color::Black); 
@@ -172,11 +149,8 @@ void Canvas::graphicThreadHandler()
             this->updateCanvas();
             this->p_window->display();
             this->controlItemsPosition();
-            this->enemies[0].updatePosition(test);
             //this->updateItemsPosition();
             this->game_context_control.unlock();
-            timer.previous_time = timer.actual_time;
-            std::this_thread::sleep_for(timer.step);
         }
         this->p_window->setActive(false);
     }
@@ -214,7 +188,7 @@ void Canvas::gameEventGenerator()
     }
 }
 
-void Canvas::eventExecutor(const sf::Event &event)
+void Canvas::executeEvent(const sf::Event &event)
 {
     static bool player_reload = false;
     static bool left_pressed  = false;
@@ -225,8 +199,6 @@ void Canvas::eventExecutor(const sf::Event &event)
         case sf::Event::Closed:
             // game stop, threads stop, window closed
             this->game_in_progress.store(false,std::memory_order_relaxed);
-            this->p_graphic_thread->join();
-            this->p_game_event_thread->join();
             this->p_window->setActive(true);
             this->p_window->close();
             break;
