@@ -20,15 +20,6 @@ enum class ShellType
     PLAYER
 };
 
-enum class ItemDirection
-{
-    NONE,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
-
 class Invader : public Object
 {
     public:
@@ -66,23 +57,14 @@ class InvaderShip : public Object
 {
     public:
         /// @brief default constructor
-        /// @param x initial coordinate for x asis
-        /// @param y initial coordinate for y asis
+        /// @param position initial coordinates 
         /// @param speed object speed on canvas
         /// @param visible object visibility on canvas
-        InvaderShip(float x, float y, float speed, bool visible, float range);
-        /// @brief change object position according to internal trajectory function
-        /// @param framerate  canvas framerate
-        void moveAlongTrajectory(unsigned int framerate);
-        /// @brief set new ship direction to move on its range
-        /// @param direction new direction 
-        void setDirection(const ItemDirection direction);
+        InvaderShip(sf::Vector2f position, float speed, bool visible, float range);
     
     private:
         /// @brief used in object trajectory
         float range;
-        /// @brief previous item direction on canvas
-        ItemDirection direction;
 };
 
 class PlayerShip : public Object
@@ -93,17 +75,13 @@ class PlayerShip : public Object
         /// @param y initial coordinate for y asis
         /// @param limit_x limit for move for x asis
         /// @param limit_y limit for move for y asis
-        PlayerShip(float x, float y, float speed, float limit_x, float limit_y);
-        /// @brief move ship to selected direction
-        /// @param direction new direction 
-        void setDirection(ItemDirection direction);
+        PlayerShip(sf::Vector2f position, float speed, float limit_x, float limit_y);
         void moveAlongTrajectory(unsigned int framerate);
         void setShotRequest(bool state);
         bool getShotRequest();
     private:
         bool invincible;
         bool shot_request;
-        ItemDirection direction;
         float limit_x;
         float limit_y;
 };

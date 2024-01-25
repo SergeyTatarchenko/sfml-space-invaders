@@ -14,8 +14,8 @@
 #include "canvas.hpp"
 #include "items.hpp"
 
-#define MAX_FRAMERATE (unsigned int)(120)
-
+//framerate limit
+constexpr int max_framerate = 120;
 //window title
 static const sf::String title = "Space Invaders";
 //default size for coordinates for main view
@@ -47,7 +47,6 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     this->grid_x    = default_x_size;
     this->grid_y    = default_y_size;
     this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    this->player    = new PlayerShip(default_border_size,this->grid_x - default_border_size,default_player_speed,this->grid_x,this->grid_y);
     if(this->p_window->isOpen() == true)
     {
         this->game_in_progress.store(true,std::memory_order_relaxed);
@@ -238,12 +237,10 @@ void Canvas::eventExecutor(const sf::Event &event)
             {
                 case sf::Keyboard::Key::Left:
                     left_pressed = true;
-                    if(right_pressed == false){this->player->setDirection(ItemDirection::LEFT);}
                     break;
 
                 case sf::Keyboard::Key::Right:
                     right_pressed = true;
-                    if(left_pressed == false){this->player->setDirection(ItemDirection::RIGHT);}
                     break;
 
                 case sf::Keyboard::Key::Space:
@@ -279,7 +276,6 @@ void Canvas::eventExecutor(const sf::Event &event)
             }
             if((left_pressed == false) && (right_pressed == false))
             {
-                this->player->setDirection(ItemDirection::NONE);
             }
             break;
 
@@ -290,36 +286,35 @@ void Canvas::eventExecutor(const sf::Event &event)
 
 void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_type)
 {
-    //we are going to shut from the middle of the object     
-    float x = rectangle.getPosition().x + rectangle.width/2.0f;
-    float y = rectangle.getPosition().y + rectangle.height/2.0f;
+    //we are going to shut from the middle of the object
+    sf::Vector2f position;     
+    position.x = rectangle.getPosition().x + rectangle.width/2.0f;
+    position.y = rectangle.getPosition().y + rectangle.height/2.0f;
     //check if we have available shells in array(that was already created and executed)
     auto it = std::find_if(bullets.begin(),bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
     if(it != bullets.end())
     {
         //use existed one
         it->setShellType(shell_type);
-        it->setPosition(x,y);
+        it->setPosition(position);
         it->setVisible();
     }
     else
     {
         //create new one
-        bullets.emplace_back(x,y,default_shell_speed,shell_type);
+        bullets.emplace_back(position,default_shell_speed,shell_type);
     }
 }
 
 void Canvas::spawnEnemies()
 {
     //enemies
-    Invader invader(0.f,0.f,default_invader_speed,true);
+    Invader invader(sf::Vector2f(0.f,0.f),default_invader_speed,true);
     const float init_x = 50.f;
     const float init_y = 100.f;
     
     while(this->game_context_control.try_lock() == false){}
-    float offset_y = 0.f;
-    float offset_x = 0.f;
-    invader.setPosition((init_x + offset_x),(init_y + offset_y));
+
     this->enemies.push_back(invader);
 
     this->game_context_control.unlock();

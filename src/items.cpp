@@ -65,38 +65,32 @@ void Shell::setShellType(const ShellType new_type)
     shell_type = new_type;
 }
 
-InvaderShip::InvaderShip(float x, float y, float speed, bool visible, float range)
+InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float range)
 {
     //start with move right
-    this->direction = ItemDirection::RIGHT;
+    setPosition(position);
+    setSpeed(speed);
+    if(visible == true){setVisible();}
+    else{setInvisible();}
     this->range   = range;
+
     setTexture("path to the texture");
     setSpriteRectangle(sf::IntRect(0, 0, invader_ship_width, invader_ship_height));
 }
 
 
-
-void InvaderShip::setDirection(const ItemDirection direction)
-{
-    this->direction = direction;
-}
-
-PlayerShip::PlayerShip(float x, float y, float speed, float limit_x, float limit_y)
+PlayerShip::PlayerShip(sf::Vector2f position, float speed, float limit_x, float limit_y)
 {
 
     this->limit_x = limit_x;
     this->limit_y = limit_y;
     this->invincible   = true;
     this->shot_request = false;
-    this->direction = ItemDirection::NONE;
+    setPosition(position);
+    setSpeed(speed);   
     
     setTexture("path to the texture");
     setSpriteRectangle(sf::IntRect(0, 0, player_ship_width, player_ship_height));
-}
-
-void PlayerShip::setDirection(ItemDirection direction)
-{
-    this->direction = direction;
 }
 
 void PlayerShip::setShotRequest(bool state)
