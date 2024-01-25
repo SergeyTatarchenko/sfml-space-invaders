@@ -35,7 +35,6 @@ Invader::Invader(sf::Vector2f position, float speed, bool visible)
     setSpriteRectangle(sf::IntRect(0, 0, invader_width, invader_height));
 }
 
-
 void Invader::updatePosition()
 {
     if(isVisible() == true)

@@ -35,6 +35,22 @@ class Invader : public Object
         int position_counter;
 };
 
+class InvaderShip : public Object
+{
+    public:
+        /// @brief default constructor
+        /// @param position initial coordinates 
+        /// @param speed object speed on canvas
+        /// @param visible object visibility on canvas
+        InvaderShip(sf::Vector2f position, float speed, bool visible, float range);
+        /// @brief change object position according to internal trajectory function
+        void updatePosition();
+    
+    private:
+        /// @brief used in object trajectory
+        float range;
+};
+
 class Shell : public Object
 {
     public:
@@ -53,20 +69,6 @@ class Shell : public Object
     private:
         /// @brief shell type (who shot this shell)
         ShellType shell_type;
-};
-
-class InvaderShip : public Object
-{
-    public:
-        /// @brief default constructor
-        /// @param position initial coordinates 
-        /// @param speed object speed on canvas
-        /// @param visible object visibility on canvas
-        InvaderShip(sf::Vector2f position, float speed, bool visible, float range);
-    
-    private:
-        /// @brief used in object trajectory
-        float range;
 };
 
 class PlayerShip : public Object

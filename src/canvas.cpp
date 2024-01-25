@@ -62,15 +62,14 @@ void Canvas::gameTask()
         while(this->p_window->pollEvent(event)){executeEvent(event);}
 
         sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
-        this->p_window->setView(view);
-        this->p_window->clear(sf::Color::Black); 
-        this->updateCanvas();
-        this->p_window->display();
+        p_window->setView(view);
+        p_window->clear(sf::Color::Black); 
+        updateCanvas();
+        p_window->display();
         updateItemsPosition();
-        this->controlItemsPosition();
+        controlItemsPosition();
     }
 }
-
 
 void Canvas::updateCanvas()
 {
@@ -100,7 +99,6 @@ void Canvas::updateItemsPosition()
 {
     //update enemies
     for (Invader& enemy : enemies){enemy.updatePosition();}
-    
     /*
     //update bullets
     for (Shell& shell : bullets)
@@ -132,7 +130,6 @@ void Canvas::controlItemsPosition()
     }
 }
 
-
 void Canvas::graphicThreadHandler()
 {
     using namespace std::chrono_literals;
@@ -158,8 +155,6 @@ void Canvas::graphicThreadHandler()
 
 void Canvas::gameEventGenerator()
 {
-
-
     static uint32_t counter = 0;   
     
     // we will exit this function only if window was requested to be closed
@@ -282,13 +277,26 @@ void Canvas::spawnEnemies()
 {
     //enemies
     Invader invader(sf::Vector2f(0.f,0.f),default_invader_speed,true);
-    const float init_x = 50.f;
-    const float init_y = 100.f;
+    constexpr float init_x = default_border_size;
+    constexpr float init_y = default_border_size * 2.f;
     
-    while(this->game_context_control.try_lock() == false){}
+    float offset_y = 0.f;
+    for(auto j = 0; j < rows_with_invaders; j++)
+    {
+        float offset_x = 0.f;
+        for(auto i = 0; i < invaders_in_row; i++)
+        {
+            invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
+            invader.setDefaultPosition();
+            this->enemies.push_back(invader);
+            offset_x += grid_row_step;
+        }
+        offset_y += grid_row_step;
+    }
 
-    this->enemies.push_back(invader);
-
-    this->game_context_control.unlock();
+    // enemy ships
+    //InvaderShip ship(default_border_size,default_border_size,default_ship_speed,true,this->grid_x - default_border_size*2);
+    //this->enemyShips.push_back(ship);
+    //this->game_context_control.unlock();
 }
 
