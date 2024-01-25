@@ -65,6 +65,49 @@ void Invader::updatePosition()
     }
 }
 
+InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float range)
+{
+    //start with move right
+    direction = ItemDirection::RIGHT;
+    setPosition(position);
+    setSpeed(speed);
+    if(visible == true){setVisible();}
+    else{setInvisible();}
+    this->range   = range;
+
+    setTexture("path to the texture");
+    setSpriteRectangle(sf::IntRect(0, 0, invader_ship_width, invader_ship_height));
+}
+
+void InvaderShip::updatePosition()
+{
+    // Invader ship trajectory:
+    //  n steps, depends on this->range
+    // --------------->
+    // <--------------|
+    if(isVisible() == true)
+    {
+        auto def_position = getDefaultPosition();
+        auto rectangle    = getRectangle(); 
+        auto position     = rectangle.getPosition();
+        auto speed        = getSpeed();
+        sf::Vector2 vector(speed,0.f);
+
+        //turn back in case of reaching end of range
+        if((position.x + speed + rectangle.width) > (def_position.x + range)){direction = ItemDirection::LEFT;}
+        else if((position.x - speed) < def_position.x){this->direction = ItemDirection::RIGHT;}
+        switch(this->direction)
+        {
+            case ItemDirection::LEFT:
+                vector.x *= (-1.f);
+                break;
+            default:
+                break;
+        }    
+        move(vector); 
+    }       
+}
+
 Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)
 {
     this->shell_type = shell_type;
@@ -85,20 +128,6 @@ void Shell::setShellType(const ShellType new_type)
 {
     shell_type = new_type;
 }
-
-InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float range)
-{
-    //start with move right
-    setPosition(position);
-    setSpeed(speed);
-    if(visible == true){setVisible();}
-    else{setInvisible();}
-    this->range   = range;
-
-    setTexture("path to the texture");
-    setSpriteRectangle(sf::IntRect(0, 0, invader_ship_width, invader_ship_height));
-}
-
 
 PlayerShip::PlayerShip(sf::Vector2f position, float speed, float limit_x, float limit_y)
 {

@@ -11,13 +11,20 @@
 #ifndef ITEMS_H
 #define ITEMS_H
 
-#include <chrono>
 #include "object.hpp"
 
 enum class ShellType
 {
     ENEMY,
     PLAYER
+};
+
+enum class ItemDirection
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
 };
 
 class Invader : public Object
@@ -49,6 +56,7 @@ class InvaderShip : public Object
     private:
         /// @brief used in object trajectory
         float range;
+        ItemDirection direction;
 };
 
 class Shell : public Object

@@ -33,9 +33,9 @@ constexpr float grid_row_step = default_x_size/20.f;
 constexpr int   invaders_in_row       = 18;
 constexpr int   rows_with_invaders    = 2;
 //speed setup
-constexpr float default_invader_speed = 2.f;
+constexpr float default_invader_speed = 1.f;
+constexpr float default_ship_speed    = 4.f;
 
-constexpr float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
 constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
 constexpr float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
 
@@ -78,18 +78,18 @@ void Canvas::updateCanvas()
     {
         if(enemy.isVisible() == true){this->p_window->draw(enemy.getSprite());}
     }
-    
+    //update enemy ships
+    for (InvaderShip& ship : this->enemyShips)
+    {
+        if(ship.isVisible() == true){this->p_window->draw(ship.getSprite());}
+    }    
     /*
     //update bullets
     for (Shell& shell : this->bullets)
     {
         if(shell.isVisible() == true){this->p_window->draw(shell.getSprite());}
     }
-    //update enemy ships
-    for (InvaderShip& ship : this->enemyShips)
-    {
-        if(ship.isVisible() == true){this->p_window->draw(ship.getSprite());}
-    }
+
     //update player ship
     this->p_window->draw(this->player->getSprite());
     */
@@ -99,17 +99,15 @@ void Canvas::updateItemsPosition()
 {
     //update enemies
     for (Invader& enemy : enemies){enemy.updatePosition();}
+    //update enemy ships
+    for (InvaderShip& ship : enemyShips){ship.updatePosition();}
     /*
     //update bullets
     for (Shell& shell : bullets)
     {
         if(shell.isVisible() == true){shell.moveAlongTrajectory(this->framerate);}
     }
-    //update enemy ships
-    for (InvaderShip& ship : enemyShips)
-    {
-        if(ship.isVisible() == true){ship.moveAlongTrajectory(this->framerate);}
-    }
+
     //update player ship
     this->player->moveAlongTrajectory(this->framerate);
     */
@@ -293,10 +291,8 @@ void Canvas::spawnEnemies()
         }
         offset_y += grid_row_step;
     }
-
     // enemy ships
-    //InvaderShip ship(default_border_size,default_border_size,default_ship_speed,true,this->grid_x - default_border_size*2);
-    //this->enemyShips.push_back(ship);
-    //this->game_context_control.unlock();
+    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,this->grid_x - default_border_size);
+    this->enemyShips.push_back(ship);
 }
 
