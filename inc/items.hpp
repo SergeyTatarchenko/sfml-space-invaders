@@ -11,6 +11,7 @@
 #ifndef ITEMS_H
 #define ITEMS_H
 
+#include <chrono>
 #include "object.hpp"
 
 enum class ShellType
@@ -32,39 +33,29 @@ class Invader : public Object
 {
     public:
         /// @brief default constructor
-        /// @param x initial coordinate for x asis
-        /// @param y initial coordinate for y asis
+        /// @param position initial coordinates 
         /// @param speed object speed on canvas
         /// @param visible object visibility on canvas
-        Invader(float x, float y, float speed, bool visible);
+        Invader(sf::Vector2f position, float speed, bool visible);
         /// @brief change object position according to internal trajectory function
-        /// @param framerate  canvas framerate
-        void moveAlongTrajectory(unsigned int framerate);
-    
-    private:
-        /// @brief object position counter, used in moveAlongTrajectory function 
-        int position_counter;
-
+        /// @param time time elapsed since the last position change
+        void updatePosition(std::chrono::milliseconds &time);
 };
 
 class Shell : public Object
 {
     public:
         /// @brief default constructor
-        /// @param x initial coordinate for x asis
-        /// @param y initial coordinate for y asis
+        /// @param position initial coordinates 
         /// @param speed object speed on canvas
         /// @param shell_type shell type (who shot)
-        Shell(float x, float y, float speed, ShellType shell_type);
+        Shell(sf::Vector2f position, float speed, ShellType shell_type);
         /// @brief check instance shell type
         /// @return enum class with ShellTypes
         ShellType getShellType();
         /// @brief change shell type of the instance
         /// @param new_type new shell type from ShellTypes
         void setShellType(const ShellType new_type);
-        /// @brief change object position according to internal trajectory function
-        /// @param framerate  canvas framerate
-        void moveAlongTrajectory(unsigned int framerate);
     
     private:
         /// @brief shell type (who shot this shell)

@@ -9,22 +9,34 @@
  */
 #include "object.hpp"
 
-void Object::setPosition(const float x, const float y)
+void Object::setInitPosition(const sf::Vector2f &position)
 {
-    def_x = x;
-    def_y = y;
-    sprite.setPosition(x,y);
+    def_position = position;
 }
 
-void Object::setParameters(const float speed, const bool visible)
+void Object::setPosition(const sf::Vector2f &position)
 {
-    this->speed   = speed;
-    this->visible = visible;
+    sprite.setPosition(position);
 }
 
 void Object::setDefaultPosition()
 {
-    sprite.setPosition(def_x,def_y);
+    sprite.setPosition(def_position);
+}
+
+sf::Vector2f Object::getDefaultPosition()
+{
+    return def_position;
+}
+
+float Object::getSpeed()
+{
+    return speed;
+}
+
+void Object::setSpeed(const float speed)
+{
+    this->speed = speed;
 }
 
 bool Object::setTexture(const std::string &filename)

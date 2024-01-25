@@ -16,16 +16,22 @@
 class Object
 {
     public:
+        void setInitPosition(const sf::Vector2f& position);
         /// @brief  setup object position
         /// @param x X coordinate of the new position
         /// @param y Y coordinate of the new position
-        void setPosition(const float x, const float y);
+        void setPosition(const sf::Vector2f& position);
         /// @brief set default position from def_x and def_y
         void setDefaultPosition();
-        /// @brief setup common object parameters
-        /// @param speed object speed
-        /// @param visible object visibility
-        void setParameters(const float speed, const bool visible);
+        /// @brief get default object position
+        /// @return vector with default position
+        sf::Vector2f getDefaultPosition();
+        /// @brief request for object speed
+        /// @return actual object speed
+        float getSpeed();
+        /// @brief setup object speed
+        /// @param speed 
+        void setSpeed(const float speed);
         /// @brief load and setup texture for this object
         /// @param filename path and texture filename
         /// @return true in case of success false if not
@@ -50,19 +56,17 @@ class Object
         /// @return reference to sf::Sprite type class member
         sf::Sprite& getSprite();
 
-    protected:
+    private:
         /// @brief object sprite with texture
         sf::Sprite sprite;
         /// @brief object with loaded texture
         sf::Texture texture;
+        /// @brief default object coordinates
+        sf::Vector2f def_position;
         /// @brief object state flag, whether it will be displayed in coordinates or not.
         bool visible;
         /// @brief object speed in coordinates per second
         float speed;
-        /// @brief default object x coordinate    
-        float def_x;
-        /// @brief default object y coordinate
-        float def_y;
 };
 
 #endif //OBJECT_H

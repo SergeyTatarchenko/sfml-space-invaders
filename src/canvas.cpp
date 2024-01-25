@@ -33,7 +33,7 @@ constexpr float grid_row_step = default_x_size/20.f;
 constexpr int   invaders_in_row       = 18;
 constexpr int   rows_with_invaders    = 2;
 //speed setup
-constexpr float default_invader_speed = (default_x_size + default_y_size)/(2.f * 10.f);
+constexpr float default_invader_speed = 100.f;
 constexpr float default_ship_speed    = (default_x_size + default_y_size)/(2.f * 4.f);
 constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
 constexpr float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
@@ -88,6 +88,8 @@ void Canvas::updateCanvas()
     {
         if(enemy.isVisible() == true){this->p_window->draw(enemy.getSprite());}
     }
+    
+    /*
     //update bullets
     for (Shell& shell : this->bullets)
     {
@@ -100,15 +102,19 @@ void Canvas::updateCanvas()
     }
     //update player ship
     this->p_window->draw(this->player->getSprite());
+    */
 }
 
 void Canvas::updateItemsPosition()
 {
-    //update enemies 
+    //update enemies
+    /* 
     for (Invader& enemy : enemies)
     {
         if(enemy.isVisible() == true){enemy.moveAlongTrajectory(this->framerate);}
     }
+    */
+    /*
     //update bullets
     for (Shell& shell : bullets)
     {
@@ -121,6 +127,7 @@ void Canvas::updateItemsPosition()
     }
     //update player ship
     this->player->moveAlongTrajectory(this->framerate);
+    */
 }
 
 void Canvas::controlItemsPosition()
@@ -156,6 +163,8 @@ void Canvas::graphicThreadHandler()
         {
             timer.actual_time  = std::chrono::system_clock::now();
             auto actual_period = timer.actual_time - timer.previous_time;
+            auto test  = std::chrono::duration_cast<std::chrono::milliseconds>(actual_period);
+            std::cout<<"time elapsed : "<<test.count()<<" ms"<<"\n";
             timer.deviation = (std::chrono::duration_cast<std::chrono::milliseconds>(actual_period).count() * 1ms) - timer.step;
             sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
             this->p_window->setView(view);
@@ -164,10 +173,11 @@ void Canvas::graphicThreadHandler()
             this->updateCanvas();
             this->p_window->display();
             this->controlItemsPosition();
-            this->updateItemsPosition();
+            this->enemies[0].updatePosition(test);
+            //this->updateItemsPosition();
             this->game_context_control.unlock();
             timer.previous_time = timer.actual_time;
-            std::this_thread::sleep_for(timer.step - timer.deviation);
+            std::this_thread::sleep_for(timer.step);
         }
         this->p_window->setActive(false);
     }
@@ -308,20 +318,9 @@ void Canvas::spawnEnemies()
     
     while(this->game_context_control.try_lock() == false){}
     float offset_y = 0.f;
-    for(auto j = 0; j < rows_with_invaders; j++)
-    {
-        float offset_x = 0.f;
-        for(auto i = 0; i < invaders_in_row; i++)
-        {
-            invader.setPosition((init_x + offset_x),(init_y + offset_y));
-            this->enemies.push_back(invader);
-            offset_x += grid_row_step;
-        }
-        offset_y += grid_row_step;
-    }
-    // enemy ships
-    InvaderShip ship(default_border_size,default_border_size,default_ship_speed,true,this->grid_x - default_border_size*2);
-    this->enemyShips.push_back(ship);
+    float offset_x = 0.f;
+    invader.setPosition((init_x + offset_x),(init_y + offset_y));
+    this->enemies.push_back(invader);
 
     this->game_context_control.unlock();
 }
