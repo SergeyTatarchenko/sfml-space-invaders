@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstring>
 
 #include "canvas.hpp"
 #include "items.hpp"
@@ -35,17 +36,21 @@ constexpr int   rows_with_invaders    = 2;
 //speed setup
 constexpr float default_invader_speed = 1.f;
 constexpr float default_ship_speed    = 4.f;
+constexpr float default_shell_speed   = 4.f;
 
 constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
-constexpr float default_shell_speed   = (default_x_size + default_y_size)/(2.f * 2.f) ;
+
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
-    this->grid_x    = default_x_size;
-    this->grid_y    = default_y_size;
-    this->p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    this->p_window->setActive(true);
-    this->p_window->setFramerateLimit(framerate);
+    grid.x    = default_x_size;
+    grid.y    = default_y_size;
+    p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
+    p_window->setActive(true);
+    p_window->setFramerateLimit(framerate);
+    std::memset(&game_control,0,sizeof(game_control));
+    game_config.framerate          = framerate;
+    game_config.invader_shot_period = framerate;
 }
 
 Canvas::~Canvas()
@@ -59,8 +64,8 @@ void Canvas::gameTask()
 
     while (this->p_window->isOpen())
     {
+        generateGameEvent();
         while(this->p_window->pollEvent(event)){executeEvent(event);}
-
         sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
         p_window->setView(view);
         p_window->clear(sf::Color::Black); 
@@ -74,22 +79,21 @@ void Canvas::gameTask()
 void Canvas::updateCanvas()
 {
     //update enemies 
-    for (Invader& enemy : this->enemies)
+    for (Invader& enemy : enemies)
     {
-        if(enemy.isVisible() == true){this->p_window->draw(enemy.getSprite());}
+        if(enemy.isVisible() == true){p_window->draw(enemy.getSprite());}
     }
     //update enemy ships
-    for (InvaderShip& ship : this->enemyShips)
+    for (InvaderShip& ship : enemyShips)
     {
-        if(ship.isVisible() == true){this->p_window->draw(ship.getSprite());}
+        if(ship.isVisible() == true){p_window->draw(ship.getSprite());}
     }    
-    /*
     //update bullets
-    for (Shell& shell : this->bullets)
+    for (Shell& shell : bullets)
     {
-        if(shell.isVisible() == true){this->p_window->draw(shell.getSprite());}
+        if(shell.isVisible() == true){p_window->draw(shell.getSprite());}
     }
-
+    /*
     //update player ship
     this->p_window->draw(this->player->getSprite());
     */
@@ -101,13 +105,9 @@ void Canvas::updateItemsPosition()
     for (Invader& enemy : enemies){enemy.updatePosition();}
     //update enemy ships
     for (InvaderShip& ship : enemyShips){ship.updatePosition();}
-    /*
     //update bullets
-    for (Shell& shell : bullets)
-    {
-        if(shell.isVisible() == true){shell.moveAlongTrajectory(this->framerate);}
-    }
-
+    for (Shell& shell : bullets){shell.updatePosition();}
+    /*
     //update player ship
     this->player->moveAlongTrajectory(this->framerate);
     */
@@ -119,8 +119,8 @@ void Canvas::controlItemsPosition()
     for (Shell& shell : bullets)
     {
         auto position = shell.getRectangle().getPosition();
-        if((position.x > grid_x) || (position.x < default_start_x) ||
-           (position.y > grid_y) || (position.y < default_start_y)
+        if((position.x > grid.x) || (position.x < default_start_x) ||
+           (position.y > grid.y) || (position.y < default_start_y)
           )
         {
             shell.setInvisible();
@@ -128,72 +128,34 @@ void Canvas::controlItemsPosition()
     }
 }
 
-void Canvas::graphicThreadHandler()
-{
-    using namespace std::chrono_literals;
-    //obtain control on window
-    if(this->p_window->setActive(true) == true)
-    {
-        // all graphic drawings are here
-        while (this->game_in_progress.load(std::memory_order_relaxed) == true)
-        {
-            sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
-            this->p_window->setView(view);
-            this->p_window->clear(sf::Color::Black); 
-            while(this->game_context_control.try_lock() == false){}
-            this->updateCanvas();
-            this->p_window->display();
-            this->controlItemsPosition();
-            //this->updateItemsPosition();
-            this->game_context_control.unlock();
-        }
-        this->p_window->setActive(false);
-    }
-}
-
-void Canvas::gameEventGenerator()
-{
-    static uint32_t counter = 0;   
+void Canvas::generateGameEvent()
+{    
+    game_control.event_counter++;
     
-    // we will exit this function only if window was requested to be closed
-    while (this->game_in_progress.load(std::memory_order_relaxed) == true)
+    if((game_control.event_counter % game_config.invader_shot_period) == 0)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(game_event_tick_ms));
-        counter++;
-        if((counter % 20) == 0)
-        {
-            counter = 0;
-            while(this->game_context_control.try_lock() == false){}
-            auto index = rand() % this->enemies.size();
-            const auto rectangle = this->enemies[index].getRectangle();
-            this->objectShot(rectangle,ShellType::ENEMY);
-            this->game_context_control.unlock();
-        }
-        if(this->player->getShotRequest() == true)
-        {
-            this->player->setShotRequest(false);
-
-            while(this->game_context_control.try_lock() == false){}
-            const auto rectangle = this->player->getRectangle();
-            this->objectShot(rectangle,ShellType::PLAYER);
-            this->game_context_control.unlock();
-        }
+        game_control.event_counter = 0;
+        auto index = rand() % this->enemies.size();
+        const auto rectangle = this->enemies[index].getRectangle();
+        this->objectShot(rectangle,ShellType::ENEMY);
     }
+    /*
+    if(this->player->getShotRequest() == true)
+    {
+        this->player->setShotRequest(false);
+        const auto rectangle = this->player->getRectangle();
+        this->objectShot(rectangle,ShellType::PLAYER);
+    }
+    */
 }
 
 void Canvas::executeEvent(const sf::Event &event)
 {
-    static bool player_reload = false;
-    static bool left_pressed  = false;
-    static bool right_pressed = false;
-
     switch (event.type)
     {
         case sf::Event::Closed:
-            // game stop, threads stop, window closed
-            this->game_in_progress.store(false,std::memory_order_relaxed);
-            this->p_window->setActive(true);
-            this->p_window->close();
+            // game stop, window closed
+            p_window->close();
             break;
     
         case sf::Event::KeyPressed:
@@ -201,21 +163,20 @@ void Canvas::executeEvent(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    left_pressed = true;
+                    game_control.left_pressed = true;
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    right_pressed = true;
+                    game_control.right_pressed = true;
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(player_reload == false)
+                    if(game_control.player_reload == false)
                     {
-                        this->player->setShotRequest(true);
-                        player_reload = true;
+                        player->setShotRequest(true);
+                        game_control.player_reload = true;
                     }
                     break;
-                
                 default:
                     break;
             }
@@ -225,21 +186,21 @@ void Canvas::executeEvent(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    left_pressed = false;
+                    game_control.left_pressed = false;
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    right_pressed = false;
+                    game_control.right_pressed = false;
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(player_reload == true){player_reload = false;}
+                    if(game_control.player_reload == true){game_control.player_reload = false;}
                     break;
                 
                 default:
                     break;
             }
-            if((left_pressed == false) && (right_pressed == false))
+            if((game_control.left_pressed == false) && (game_control.right_pressed == false))
             {
             }
             break;
@@ -286,13 +247,13 @@ void Canvas::spawnEnemies()
         {
             invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
             invader.setDefaultPosition();
-            this->enemies.push_back(invader);
+            enemies.push_back(invader);
             offset_x += grid_row_step;
         }
         offset_y += grid_row_step;
     }
     // enemy ships
-    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,this->grid_x - default_border_size);
+    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,grid.x - default_border_size);
     this->enemyShips.push_back(ship);
 }
 

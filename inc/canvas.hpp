@@ -11,14 +11,25 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <chrono>
-#include <thread>
 #include <vector>
-#include <atomic>
-#include <mutex>
-
 #include <SFML/Graphics.hpp>
 #include "items.hpp"
+
+
+struct GameControl
+{
+    uint32_t event_counter;
+    bool     player_reload;
+    bool     left_pressed;
+    bool     right_pressed;
+};
+
+struct GameConfig
+{
+    unsigned int framerate;
+    unsigned int frame_tick_ms;
+    unsigned int invader_shot_period;
+};
 
 class Canvas
 {
@@ -35,27 +46,24 @@ class Canvas
         void spawnEnemies();
         
     private:
-        /// @brief vector with invader instances
+        /// @brief vector with invaders
         std::vector<Invader> enemies;
-        std::vector<InvaderShip> enemyShips;        
-        PlayerShip* player;
+        /// @brief vector with invader ships
+        std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
-        /// @brief actual grid for x
-        float grid_x;
-        /// @brief actual grid for y
-        float grid_y;
+        /// @brief instance of player        
+        PlayerShip* player;
+        /// @brief actual view grid
+        sf::Vector2f grid; 
         /// @brief pointer to SFML window
         sf::RenderWindow* p_window;
-        /// @brief pointer to thread with all graphic management
-        /// @brief  struct with internal game events
-        std::atomic<bool> game_in_progress {false};
-        /// @brief mutex for proper resource sharing between threads
-        std::mutex game_context_control;
-        /// @brief handler for p_graphic_thread 
-        void graphicThreadHandler();
+        /// @brief struct with game control items
+        GameControl game_control;
+        /// @brief struct with game configuration
+        GameConfig game_config;
         /// @brief handler for p_game_event_thread
-        void gameEventGenerator();
+        void generateGameEvent();
         /// @brief render items on canvas according to their actual state
         void updateCanvas();
         /// @brief update items on canvas according to their trajectory
@@ -65,6 +73,9 @@ class Canvas
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void executeEvent(const sf::Event& event);
+        /// @brief generate a new shell on the canvas
+        /// @param rectangle reference to object rectangle from which shell be generated (shot amimation)
+        /// @param shell_type shell type (who shot this shell)
         void objectShot(const sf::FloatRect& rectangle, const ShellType shell_type);
 };      
 

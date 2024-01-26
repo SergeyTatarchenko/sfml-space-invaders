@@ -73,6 +73,8 @@ class Shell : public Object
         /// @brief change shell type of the instance
         /// @param new_type new shell type from ShellTypes
         void setShellType(const ShellType new_type);
+        /// @brief change object position according to internal trajectory function
+        void updatePosition();
     
     private:
         /// @brief shell type (who shot this shell)
