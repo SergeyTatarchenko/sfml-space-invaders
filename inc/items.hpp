@@ -85,19 +85,31 @@ class PlayerShip : public Object
 {
     public:
         /// @brief default constructor
-        /// @param x initial coordinate for x asis
-        /// @param y initial coordinate for y asis
-        /// @param limit_x limit for move for x asis
-        /// @param limit_y limit for move for y asis
-        PlayerShip(sf::Vector2f position, float speed, float limit_x, float limit_y);
-        void moveAlongTrajectory(unsigned int framerate);
+        /// @param position initial coordinates 
+        /// @param limits move limits on canvas 
+        /// @param speed object speed on canvas
+        PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed);
+        /// @brief 
+        /// @param state 
         void setShotRequest(bool state);
+        /// @brief 
+        /// @return 
         bool getShotRequest();
+        /// @brief 
+        /// @param vector 
+        void setMotionVector(const sf::Vector2f& vector);
+        /// @brief change object position according to internal trajectory function
+        void updatePosition();
+        
     private:
+        /// @brief 
         bool invincible;
+        /// @brief 
         bool shot_request;
-        float limit_x;
-        float limit_y;
+        /// @brief 
+        sf::Vector2f limits;
+        /// @brief 
+        sf::Vector2f motion_vector;
 };
 
 #endif //ITEMS_H

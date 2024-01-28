@@ -8,7 +8,8 @@
  *
  */
 #include "items.hpp"
-#include <iostream> 
+#include <iostream>
+ #include <cmath>
 
 //default invader dimensions
 constexpr int invader_width       = 20;
@@ -132,10 +133,7 @@ void Shell::setShellType(const ShellType new_type)
 void Shell::updatePosition()
 {
     // shell trajectory:
-    // |    /|\
-    // |     |
-    // |  or |
-    //\|/    |
+    // straight up or down from the creation point
     if(isVisible() == true)
     {
         auto speed        = getSpeed();
@@ -153,14 +151,14 @@ void Shell::updatePosition()
     }     
 }
 
-PlayerShip::PlayerShip(sf::Vector2f position, float speed, float limit_x, float limit_y)
+PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
 {
 
-    this->limit_x = limit_x;
-    this->limit_y = limit_y;
+    this->limits       = limits;
     this->invincible   = true;
     this->shot_request = false;
     setPosition(position);
+    setVisible();
     setSpeed(speed);   
     
     setTexture("path to the texture");
@@ -175,4 +173,50 @@ void PlayerShip::setShotRequest(bool state)
 bool PlayerShip::getShotRequest()
 {
     return this->shot_request;
+}
+
+void PlayerShip::setMotionVector(const sf::Vector2f &vector)
+{
+    motion_vector = vector;
+}
+
+void PlayerShip::updatePosition()
+{
+    auto calc_distance = []( sf::Vector2f &vector_a,  sf::Vector2f &vector_b)
+    {
+        // R = sqrt((B.x - A.x)^2 + (B.y - A.y)^2)
+        return sqrtf32(powf32((vector_b.x - vector_a.x),2.f) + powf32((vector_b.y - vector_a.y),2.f));
+    };
+
+    auto get_cathetuses = [](sf::Vector2f &vector_a,  sf::Vector2f &vector_b)
+    {
+        // return cathetuses of right-angled triangle created from vector_a and vector_b
+        return sf::Vector2f((vector_b.x - vector_a.x),(vector_b.y - vector_a.y));
+    };
+
+    if(isVisible() == true)
+    {
+        sf::Vector2 vector(0.f,0.f);
+        auto position = getRectangle().getPosition();   
+        auto speed    = getSpeed();
+        if(position != motion_vector)
+        {
+            auto distance_left = calc_distance(position,motion_vector);
+            if(distance_left <= speed)
+            {
+                // set the vector as the end point of the path
+                setPosition(motion_vector);
+            }
+            else
+            {
+                //calc new point
+                auto cathetuses = get_cathetuses(position,motion_vector);
+                float tmp_cos   = cathetuses.x/distance_left;
+                float tmp_sin   = cathetuses.y/distance_left;
+                vector.x = tmp_cos * speed;
+                vector.y = tmp_sin * speed;
+                move(vector);
+            }
+        } 
+    }     
 }

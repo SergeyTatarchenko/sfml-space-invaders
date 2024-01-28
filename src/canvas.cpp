@@ -26,8 +26,6 @@ constexpr float default_x_size  = 1000.f;
 constexpr float default_y_size  = 1000.f;
 //border size around game field
 constexpr float default_border_size = 50.f;
-//game event tick
-constexpr int game_event_tick_ms = 50;
 //max 20 items per one row
 constexpr float grid_row_step = default_x_size/20.f;
 //invaders constants for grid and speed
@@ -37,9 +35,12 @@ constexpr int   rows_with_invaders    = 2;
 constexpr float default_invader_speed = 1.f;
 constexpr float default_ship_speed    = 4.f;
 constexpr float default_shell_speed   = 4.f;
-
-constexpr float default_player_speed  = (default_x_size + default_y_size)/(2.f * 2.f);
-
+constexpr float default_player_speed  = 5.f;
+//limits for player movement
+constexpr float bottom_left_x   = default_border_size;
+constexpr float bottom_right_x  = default_x_size - default_border_size;
+constexpr float bottom_left_y   = default_y_size - default_border_size;
+constexpr float bottom_right_y  = default_y_size - default_border_size;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -48,6 +49,8 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
     p_window->setActive(true);
     p_window->setFramerateLimit(framerate);
+    player = new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed);
+    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     std::memset(&game_control,0,sizeof(game_control));
     game_config.framerate          = framerate;
     game_config.invader_shot_period = framerate;
@@ -93,10 +96,8 @@ void Canvas::updateCanvas()
     {
         if(shell.isVisible() == true){p_window->draw(shell.getSprite());}
     }
-    /*
     //update player ship
     this->p_window->draw(this->player->getSprite());
-    */
 }
 
 void Canvas::updateItemsPosition()
@@ -107,10 +108,8 @@ void Canvas::updateItemsPosition()
     for (InvaderShip& ship : enemyShips){ship.updatePosition();}
     //update bullets
     for (Shell& shell : bullets){shell.updatePosition();}
-    /*
     //update player ship
-    this->player->moveAlongTrajectory(this->framerate);
-    */
+    this->player->updatePosition();
 }
 
 void Canvas::controlItemsPosition()
@@ -139,14 +138,12 @@ void Canvas::generateGameEvent()
         const auto rectangle = this->enemies[index].getRectangle();
         this->objectShot(rectangle,ShellType::ENEMY);
     }
-    /*
     if(this->player->getShotRequest() == true)
     {
         this->player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
         this->objectShot(rectangle,ShellType::PLAYER);
     }
-    */
 }
 
 void Canvas::executeEvent(const sf::Event &event)
@@ -164,10 +161,12 @@ void Canvas::executeEvent(const sf::Event &event)
             {
                 case sf::Keyboard::Key::Left:
                     game_control.left_pressed = true;
+                    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
                     break;
 
                 case sf::Keyboard::Key::Right:
                     game_control.right_pressed = true;
+                    player->setMotionVector(sf::Vector2f(bottom_right_x,bottom_right_y));
                     break;
 
                 case sf::Keyboard::Key::Space:
@@ -202,6 +201,7 @@ void Canvas::executeEvent(const sf::Event &event)
             }
             if((game_control.left_pressed == false) && (game_control.right_pressed == false))
             {
+                player->setMotionVector(player->getRectangle().getPosition());
             }
             break;
 
