@@ -12,9 +12,9 @@
 #define CANVAS_H
 
 #include <vector>
+#include <memory>
 #include <SFML/Graphics.hpp>
 #include "items.hpp"
-
 
 struct GameControl
 {
@@ -39,8 +39,6 @@ class Canvas
         /// @param height canvas initial height in pixels
         /// @param framerate canvas initial framerate
         Canvas(const unsigned int width, unsigned int height, const unsigned int framerate);
-        /// @brief default destructor
-        ~Canvas();
         void gameTask();
         /// @brief spawn enemies on canvas
         void spawnEnemies();
@@ -52,12 +50,12 @@ class Canvas
         std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
-        /// @brief instance of player        
-        PlayerShip* player;
+        /// @brief pointer to player ship
+        std::unique_ptr<PlayerShip> player;        
+        /// @brief pointer to SFML window
+        std::unique_ptr<sf::RenderWindow> window;
         /// @brief actual view grid
         sf::Vector2f grid; 
-        /// @brief pointer to SFML window
-        sf::RenderWindow* p_window;
         /// @brief struct with game control items
         GameControl game_control;
         /// @brief struct with game configuration

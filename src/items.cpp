@@ -211,10 +211,8 @@ void PlayerShip::updatePosition()
             {
                 //calc new point
                 auto cathetuses = get_cathetuses(position,motion_vector);
-                float tmp_cos   = cathetuses.x/distance_left;
-                float tmp_sin   = cathetuses.y/distance_left;
-                vector.x = tmp_cos * speed;
-                vector.y = tmp_sin * speed;
+                vector.x = (cathetuses.x/distance_left) * speed;
+                vector.y = (cathetuses.y/distance_left) * speed;
                 move(vector);
             }
         } 

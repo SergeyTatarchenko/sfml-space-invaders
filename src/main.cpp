@@ -8,8 +8,8 @@
  *
  */
 
-#include <iostream> 
 #include "canvas.hpp"
+
 
 int main()
 {

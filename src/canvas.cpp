@@ -8,7 +8,6 @@
  *
  */
 
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
 
@@ -46,34 +45,28 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
 {
     grid.x    = default_x_size;
     grid.y    = default_y_size;
-    p_window  = new sf::RenderWindow(sf::VideoMode(width, height), title);
-    p_window->setActive(true);
-    p_window->setFramerateLimit(framerate);
-    player = new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed);
+    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
+    window->setActive(true);
+    window->setFramerateLimit(framerate);
+    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     std::memset(&game_control,0,sizeof(game_control));
-    game_config.framerate          = framerate;
+    game_config.framerate           = framerate;
     game_config.invader_shot_period = framerate;
-}
-
-Canvas::~Canvas()
-{
-    delete this->p_window;
 }
 
 void Canvas::gameTask()
 {
     sf::Event event;
-
-    while (this->p_window->isOpen())
+    while (window->isOpen())
     {
         generateGameEvent();
-        while(this->p_window->pollEvent(event)){executeEvent(event);}
+        while(window->pollEvent(event)){executeEvent(event);}
         sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
-        p_window->setView(view);
-        p_window->clear(sf::Color::Black); 
+        window->setView(view);
+        window->clear(sf::Color::Black); 
         updateCanvas();
-        p_window->display();
+        window->display();
         updateItemsPosition();
         controlItemsPosition();
     }
@@ -84,20 +77,20 @@ void Canvas::updateCanvas()
     //update enemies 
     for (Invader& enemy : enemies)
     {
-        if(enemy.isVisible() == true){p_window->draw(enemy.getSprite());}
+        if(enemy.isVisible() == true){window->draw(enemy.getSprite());}
     }
     //update enemy ships
     for (InvaderShip& ship : enemyShips)
     {
-        if(ship.isVisible() == true){p_window->draw(ship.getSprite());}
+        if(ship.isVisible() == true){window->draw(ship.getSprite());}
     }    
     //update bullets
     for (Shell& shell : bullets)
     {
-        if(shell.isVisible() == true){p_window->draw(shell.getSprite());}
+        if(shell.isVisible() == true){window->draw(shell.getSprite());}
     }
     //update player ship
-    this->p_window->draw(this->player->getSprite());
+    this->window->draw(this->player->getSprite());
 }
 
 void Canvas::updateItemsPosition()
@@ -152,7 +145,7 @@ void Canvas::executeEvent(const sf::Event &event)
     {
         case sf::Event::Closed:
             // game stop, window closed
-            p_window->close();
+            window->close();
             break;
     
         case sf::Event::KeyPressed:
