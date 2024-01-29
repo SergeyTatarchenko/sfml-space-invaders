@@ -115,7 +115,7 @@ Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)
     setSpeed(speed);
     setVisible();
 
-    setTexture("rc/player.png");
+    setTexture("path to the texture");
     setSpriteRectangle(sf::IntRect(0, 0, shell_width, shell_height));
 }
 
