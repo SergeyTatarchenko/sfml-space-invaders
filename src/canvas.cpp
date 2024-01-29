@@ -253,8 +253,10 @@ void Canvas::spawnEnemies()
         }
         offset_y += grid_row_step;
     }
+    for (Invader& enemy : enemies){enemy.setTexture("rc/green.png");}
     // enemy ships
     InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,grid.x - default_border_size);
     this->enemyShips.push_back(ship);
+    for (InvaderShip& ship : enemyShips){ship.setTexture("rc/extra.png");}
 }
 

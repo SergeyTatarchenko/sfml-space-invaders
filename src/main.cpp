@@ -10,7 +10,6 @@
 
 #include "canvas.hpp"
 
-
 int main()
 {
     Canvas canvas(500,500,60);

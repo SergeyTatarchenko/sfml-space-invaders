@@ -8,6 +8,7 @@
  *
  */
 #include "object.hpp"
+#include <iostream>
 
 void Object::setInitPosition(const sf::Vector2f &position)
 {
@@ -41,8 +42,9 @@ void Object::setSpeed(const float speed)
 
 bool Object::setTexture(const std::string &filename)
 {
+    bool stat = texture.loadFromFile(filename);
     sprite.setTexture(texture);
-    return true;
+    return stat;
 }
 
 void Object::setSpriteRectangle(const sf::IntRect &rectangle)
