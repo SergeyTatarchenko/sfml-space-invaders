@@ -185,7 +185,7 @@ void PlayerShip::updatePosition()
     auto calc_distance = []( sf::Vector2f &vector_a,  sf::Vector2f &vector_b)
     {
         // R = sqrt((B.x - A.x)^2 + (B.y - A.y)^2)
-        return sqrtf32(powf32((vector_b.x - vector_a.x),2.f) + powf32((vector_b.y - vector_a.y),2.f));
+        return sqrtf(powf((vector_b.x - vector_a.x),2.f) + powf((vector_b.y - vector_a.y),2.f));
     };
 
     auto get_cathetuses = [](sf::Vector2f &vector_a,  sf::Vector2f &vector_b)

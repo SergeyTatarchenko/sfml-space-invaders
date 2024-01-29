@@ -13,7 +13,7 @@
 
 #include <vector>
 #include <memory>
-#include <SFML/Graphics.hpp>
+#include <random>
 #include "items.hpp"
 
 struct GameControl
@@ -60,6 +60,7 @@ class Canvas
         GameControl game_control;
         /// @brief struct with game configuration
         GameConfig game_config;
+        std:: minstd_rand randomizer;
         /// @brief handler for p_game_event_thread
         void generateGameEvent();
         /// @brief render items on canvas according to their actual state

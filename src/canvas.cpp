@@ -8,14 +8,14 @@
  *
  */
 
-#include <cstdlib>
 #include <cstring>
-
 #include "canvas.hpp"
 #include "items.hpp"
 
 //framerate limit
 constexpr int max_framerate = 120;
+//init for random generator 
+constexpr int ultimate_answer = 42;
 //window title
 static const sf::String title = "Space Invaders";
 //default size for coordinates for main view
@@ -43,6 +43,7 @@ constexpr float bottom_right_y  = default_y_size - default_border_size;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
+    randomizer.seed(ultimate_answer);
     grid.x    = default_x_size;
     grid.y    = default_y_size;
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
@@ -121,16 +122,23 @@ void Canvas::controlItemsPosition()
 }
 
 void Canvas::generateGameEvent()
-{    
+{
     game_control.event_counter++;
-    
+   
+    //random enemy shot every second
     if((game_control.event_counter % game_config.invader_shot_period) == 0)
     {
         game_control.event_counter = 0;
-        auto index = rand() % this->enemies.size();
-        const auto rectangle = this->enemies[index].getRectangle();
-        this->objectShot(rectangle,ShellType::ENEMY);
+        auto index = randomizer() % enemies.size();
+        if(enemies[index].isVisible() == true)
+        {
+            const auto rectangle = enemies[index].getRectangle();
+            this->objectShot(rectangle,ShellType::ENEMY);
+        }
+        
     }
+
+    //player shot handle 
     if(this->player->getShotRequest() == true)
     {
         this->player->setShotRequest(false);
