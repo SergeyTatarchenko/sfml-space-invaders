@@ -8,6 +8,7 @@
  *
  */
 
+#include <iostream>
 #include <cstring>
 #include "canvas.hpp"
 #include "items.hpp"
@@ -257,7 +258,32 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
 
 void Canvas::checkCollision()
 {
+    
+    for (Shell& shell : bullets)
+    {
+        //collision between enemy shells and player ship
+        if((shell.getShellType() == ShellType::ENEMY) && (shell.isVisible() == true))
+        {
 
+            if(player->getRectangle().intersects(shell.getRectangle()))
+            {
+                //logic for player hit here
+            }
+        }
+        if((shell.getShellType() == ShellType::PLAYER) && (shell.isVisible() == true))
+        {
+            for (Invader& enemy : enemies)
+            {
+
+                if( (enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
+                {
+                    //invader hit, make it invisible, make shot invisible
+                    shell.setInvisible();
+                    enemy.setInvisible();
+                }    
+            }
+        }
+    }
 }
 
 void Canvas::spawnEnemies()
