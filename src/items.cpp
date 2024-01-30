@@ -8,21 +8,11 @@
  *
  */
 #include "items.hpp"
-#include <iostream>
  #include <cmath>
 
-//default invader dimensions
-constexpr int invader_width       = 20;
-constexpr int invader_height      = 20;
 //default shell dimensions
 constexpr int shell_width         = 5;
 constexpr int shell_height        = 5;
-//default invader ship dimensions
-constexpr int invader_ship_width  = 40;
-constexpr int invader_ship_height = 20;
-//default player ship dimensions
-constexpr int player_ship_width   = 30;
-constexpr int player_ship_height  = 20;
 
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {
@@ -147,8 +137,8 @@ PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
 {
 
     this->limits       = limits;
-    this->invincible   = true;
-    this->shot_request = false;
+    invincible   = true;
+    shot_request = false;
     setPosition(position);
     setVisible();
     setSpeed(speed);
@@ -156,12 +146,12 @@ PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
 
 void PlayerShip::setShotRequest(bool state)
 {
-    this->shot_request = state;
+    shot_request = state;
 }
 
 bool PlayerShip::getShotRequest()
 {
-    return this->shot_request;
+    return shot_request;
 }
 
 void PlayerShip::setMotionVector(const sf::Vector2f &vector)

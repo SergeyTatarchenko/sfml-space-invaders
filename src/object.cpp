@@ -8,7 +8,6 @@
  *
  */
 #include "object.hpp"
-#include <iostream>
 
 void Object::setInitPosition(const sf::Vector2f &position)
 {

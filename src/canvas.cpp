@@ -43,16 +43,16 @@ constexpr float bottom_right_y  = default_y_size - default_border_size;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
+    //random generator used for enemy shot events
     randomizer.seed(ultimate_answer);
-    grid.x    = default_x_size;
-    grid.y    = default_y_size;
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
     window->setActive(true);
     window->setFramerateLimit(framerate);
+    grid.x    = default_x_size;
+    grid.y    = default_y_size;
     resource_manager.enemy.loadFromFile("rc/green.png");
     resource_manager.player.loadFromFile("rc/player.png");
     resource_manager.enemy_ship.loadFromFile("rc/extra.png");
-    
     player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setTexture(resource_manager.player);
@@ -96,7 +96,7 @@ void Canvas::updateCanvas()
         if(shell.isVisible() == true){window->draw(shell.getSprite());}
     }
     //update player ship
-    this->window->draw(this->player->getSprite());
+    window->draw(player->getSprite());
 }
 
 void Canvas::updateItemsPosition()
@@ -108,7 +108,7 @@ void Canvas::updateItemsPosition()
     //update bullets
     for (Shell& shell : bullets){shell.updatePosition();}
     //update player ship
-    this->player->updatePosition();
+    player->updatePosition();
 }
 
 void Canvas::controlItemsPosition()
@@ -138,17 +138,16 @@ void Canvas::generateGameEvent()
         if(enemies[index].isVisible() == true)
         {
             const auto rectangle = enemies[index].getRectangle();
-            this->objectShot(rectangle,ShellType::ENEMY);
+            objectShot(rectangle,ShellType::ENEMY);
         }
         
     }
-
     //player shot handle 
-    if(this->player->getShotRequest() == true)
+    if(player->getShotRequest() == true)
     {
-        this->player->setShotRequest(false);
+        player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
-        this->objectShot(rectangle,ShellType::PLAYER);
+        objectShot(rectangle,ShellType::PLAYER);
     }
 }
 
