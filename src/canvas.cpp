@@ -29,12 +29,12 @@ constexpr float default_border_size = 50.f;
 constexpr float grid_row_step = default_x_size/20.f;
 //invaders constants for grid and speed
 constexpr int   invaders_in_row       = 18;
-constexpr int   rows_with_invaders    = 2;
-//speed setup
-constexpr float default_invader_speed = 1.f;
-constexpr float default_ship_speed    = 4.f;
-constexpr float default_shell_speed   = 4.f;
-constexpr float default_player_speed  = 5.f;
+constexpr int   rows_with_invaders    = 6;
+//speed setup (greed per second)
+constexpr float default_invader_speed = 60.f;
+constexpr float default_ship_speed    = 250.f;
+constexpr float default_shell_speed   = 200.f;
+constexpr float default_player_speed  = 400.f;
 //limits for player movement
 constexpr float bottom_left_x   = default_border_size;
 constexpr float bottom_right_x  = default_x_size - default_border_size;
@@ -48,17 +48,31 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
     window->setActive(true);
     window->setFramerateLimit(framerate);
-    grid.x    = default_x_size;
-    grid.y    = default_y_size;
-    resource_manager.enemy.loadFromFile("rc/green.png");
-    resource_manager.player.loadFromFile("rc/player.png");
-    resource_manager.enemy_ship.loadFromFile("rc/extra.png");
-    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed));
+    grid.x = default_x_size;
+    grid.y = default_y_size;
+    loadTextures();
+    calculateItemsSpeed(framerate);
+    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, game_config.player_speed));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setTexture(resource_manager.player);
     std::memset(&game_control,0,sizeof(game_control));
-    game_config.framerate           = framerate;
+    //shot every second
     game_config.invader_shot_period = framerate;
+}
+
+void Canvas::calculateItemsSpeed(const unsigned int framerate)
+{
+    if(framerate != 0)
+    {
+        game_config.enemy_ship_speed = default_ship_speed/framerate;
+        game_config.invader_speed    = default_invader_speed/framerate;
+        game_config.player_speed     = default_player_speed/framerate;
+        game_config.shell_speed      = default_shell_speed/framerate;
+    }
+    else
+    {
+        std::memset(&game_config,0,sizeof(game_config));
+    }
 }
 
 void Canvas::gameTask()
@@ -73,8 +87,9 @@ void Canvas::gameTask()
         window->clear(sf::Color::Black); 
         updateCanvas();
         window->display();
-        updateItemsPosition();
         controlItemsPosition();
+        checkCollision();
+        updateItemsPosition();
     }
 }
 
@@ -233,16 +248,22 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
     else
     {
         //create new one
-        Shell shell(position,default_shell_speed,shell_type);
+        Shell shell(position,game_config.shell_speed,shell_type);
         shell.setTexture(resource_manager.shell);
+        shell.setSpriteColor(sf::Color(40, 236, 250));
         bullets.push_back(shell);
     }
+}
+
+void Canvas::checkCollision()
+{
+
 }
 
 void Canvas::spawnEnemies()
 {
     //enemies
-    Invader invader(sf::Vector2f(0.f,0.f),default_invader_speed,true);
+    Invader invader(sf::Vector2f(0.f,0.f),game_config.invader_speed,true);
     constexpr float init_x = default_border_size;
     constexpr float init_y = default_border_size * 2.f;
     invader.setTexture(resource_manager.enemy);
@@ -261,8 +282,27 @@ void Canvas::spawnEnemies()
         offset_y += grid_row_step;
     }
     // enemy ships
-    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,grid.x - default_border_size);
+    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),game_config.enemy_ship_speed,true,grid.x - default_border_size);
     ship.setTexture(resource_manager.enemy_ship);
     enemyShips.push_back(ship);
 }
 
+void Canvas::loadTextures()
+{
+    //resources are loaded from external files
+    if(!resource_manager.enemy.loadFromFile("rc/green.png"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    if(!resource_manager.player.loadFromFile("rc/player.png"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    if(!resource_manager.enemy_ship.loadFromFile("rc/extra.png"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    resource_manager.enemy.setSmooth(true);
+    resource_manager.player.setSmooth(true);
+    resource_manager.enemy_ship.setSmooth(true);
+}

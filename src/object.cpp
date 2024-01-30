@@ -49,6 +49,11 @@ void Object::setSpriteRectangle(const sf::IntRect &rectangle)
     sprite.setTextureRect(rectangle);
 }
 
+void Object::setSpriteColor(const sf::Color &color)
+{
+    sprite.setColor(color);
+}
+
 void Object::setVisible()
 {
     visible = true;

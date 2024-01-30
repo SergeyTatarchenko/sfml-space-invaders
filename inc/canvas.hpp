@@ -26,9 +26,11 @@ struct GameControl
 
 struct GameConfig
 {
-    unsigned int framerate;
-    unsigned int frame_tick_ms;
     unsigned int invader_shot_period;
+    float player_speed;
+    float enemy_ship_speed;
+    float invader_speed;
+    float shell_speed;
 };
 
 struct ResourceManager
@@ -72,14 +74,21 @@ class Canvas
         std:: minstd_rand randomizer;
         /// @brief struct with textures for game objects 
         ResourceManager resource_manager;
-        /// @brief handler for p_game_event_thread
+        /// @brief game event generator
         void generateGameEvent();
+        /// @brief textures loading
+        void loadTextures();
+        /// @brief calculate items speed based on actual framerate
+        /// @param framerate expected framerate
+        void calculateItemsSpeed(const unsigned int framerate);
         /// @brief render items on canvas according to their actual state
         void updateCanvas();
         /// @brief update items on canvas according to their trajectory
         void updateItemsPosition();
         /// @brief control all items on canvas and remove them if they leave visible space
         void controlItemsPosition();
+        /// @brief check for sollision between sprites on the canvas
+        void checkCollision();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void executeEvent(const sf::Event& event);
