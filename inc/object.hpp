@@ -33,9 +33,8 @@ class Object
         /// @param speed 
         void setSpeed(const float speed);
         /// @brief load and setup texture for this object
-        /// @param filename path and texture filename
-        /// @return true in case of success false if not
-        bool setTexture(const std::string &filename);
+        /// @param texture reference to texture
+        void setTexture(const sf::Texture &texture);
         /// @brief setup sprite rectangle
         /// @param rectangle reference to expected rectangle
         void setSpriteRectangle(const sf::IntRect& rectangle);
@@ -59,8 +58,6 @@ class Object
     private:
         /// @brief object sprite with texture
         sf::Sprite sprite;
-        /// @brief object with loaded texture
-        sf::Texture texture;
         /// @brief default object coordinates
         sf::Vector2f def_position;
         /// @brief object state flag, whether it will be displayed in coordinates or not.

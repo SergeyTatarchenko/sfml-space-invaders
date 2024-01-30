@@ -49,8 +49,13 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
     window->setActive(true);
     window->setFramerateLimit(framerate);
+    resource_manager.enemy.loadFromFile("rc/green.png");
+    resource_manager.player.loadFromFile("rc/player.png");
+    resource_manager.enemy_ship.loadFromFile("rc/extra.png");
+    
     player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, default_player_speed));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
+    player->setTexture(resource_manager.player);
     std::memset(&game_control,0,sizeof(game_control));
     game_config.framerate           = framerate;
     game_config.invader_shot_period = framerate;
@@ -229,7 +234,9 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
     else
     {
         //create new one
-        bullets.emplace_back(position,default_shell_speed,shell_type);
+        Shell shell(position,default_shell_speed,shell_type);
+        shell.setTexture(resource_manager.shell);
+        bullets.push_back(shell);
     }
 }
 
@@ -239,7 +246,8 @@ void Canvas::spawnEnemies()
     Invader invader(sf::Vector2f(0.f,0.f),default_invader_speed,true);
     constexpr float init_x = default_border_size;
     constexpr float init_y = default_border_size * 2.f;
-    
+    invader.setTexture(resource_manager.enemy);
+
     float offset_y = 0.f;
     for(auto j = 0; j < rows_with_invaders; j++)
     {
@@ -253,10 +261,9 @@ void Canvas::spawnEnemies()
         }
         offset_y += grid_row_step;
     }
-    for (Invader& enemy : enemies){enemy.setTexture("rc/green.png");}
     // enemy ships
     InvaderShip ship(sf::Vector2(default_border_size,default_border_size),default_ship_speed,true,grid.x - default_border_size);
-    this->enemyShips.push_back(ship);
-    for (InvaderShip& ship : enemyShips){ship.setTexture("rc/extra.png");}
+    ship.setTexture(resource_manager.enemy_ship);
+    enemyShips.push_back(ship);
 }
 

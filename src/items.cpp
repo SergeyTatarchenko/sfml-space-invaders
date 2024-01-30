@@ -30,9 +30,7 @@ Invader::Invader(sf::Vector2f position, float speed, bool visible)
     setPosition(position);
     setSpeed(speed);
     if(visible == true){setVisible();}
-    else{setInvisible();}
-    setTexture("rc/green.png");
-    
+    else{setInvisible();}    
 }
 
 void Invader::updatePosition()
@@ -74,9 +72,6 @@ InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float
     setSpeed(speed);
     if(visible == true){setVisible();}
     else{setInvisible();}
-
-    setTexture("rc/extra.png");
-    setSpriteRectangle(sf::IntRect(0, 0, invader_ship_width, invader_ship_height));
 }
 
 void InvaderShip::updatePosition()
@@ -114,8 +109,6 @@ Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)
     setPosition(position);
     setSpeed(speed);
     setVisible();
-
-    setTexture("path to the texture");
     setSpriteRectangle(sf::IntRect(0, 0, shell_width, shell_height));
 }
 
@@ -158,9 +151,7 @@ PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
     this->shot_request = false;
     setPosition(position);
     setVisible();
-    setSpeed(speed);   
-    
-    setTexture("rc/player.png");
+    setSpeed(speed);
 }
 
 void PlayerShip::setShotRequest(bool state)

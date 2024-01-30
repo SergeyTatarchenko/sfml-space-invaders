@@ -31,6 +31,14 @@ struct GameConfig
     unsigned int invader_shot_period;
 };
 
+struct ResourceManager
+{
+    sf::Texture player;
+    sf::Texture enemy;
+    sf::Texture enemy_ship;
+    sf::Texture shell;
+};
+
 class Canvas
 {
     public:
@@ -60,7 +68,10 @@ class Canvas
         GameControl game_control;
         /// @brief struct with game configuration
         GameConfig game_config;
+        /// @brief random number generator instance
         std:: minstd_rand randomizer;
+        /// @brief struct with textures for game objects 
+        ResourceManager resource_manager;
         /// @brief handler for p_game_event_thread
         void generateGameEvent();
         /// @brief render items on canvas according to their actual state

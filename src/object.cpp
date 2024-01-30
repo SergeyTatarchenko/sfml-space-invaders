@@ -40,11 +40,9 @@ void Object::setSpeed(const float speed)
     this->speed = speed;
 }
 
-bool Object::setTexture(const std::string &filename)
+void Object::setTexture(const sf::Texture &texture)
 {
-    bool stat = texture.loadFromFile(filename);
     sprite.setTexture(texture);
-    return stat;
 }
 
 void Object::setSpriteRectangle(const sf::IntRect &rectangle)
