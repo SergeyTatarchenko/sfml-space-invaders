@@ -33,6 +33,12 @@ struct GameConfig
     float shell_speed;
 };
 
+struct GameStatus
+{
+    sf::Text score_text;
+    int score;
+};
+
 struct ResourceManager
 {
     sf::Texture player;
@@ -41,6 +47,7 @@ struct ResourceManager
     sf::Texture enemy_type_3;
     sf::Texture enemy_ship;
     sf::Texture shell;
+    sf::Font game_font;
 };
 
 class Canvas
@@ -72,6 +79,8 @@ class Canvas
         GameControl game_control;
         /// @brief struct with game configuration
         GameConfig game_config;
+        /// @brief struct with game status
+        GameStatus game_status;
         /// @brief random number generator instance
         std:: minstd_rand randomizer;
         /// @brief struct with textures for game objects 

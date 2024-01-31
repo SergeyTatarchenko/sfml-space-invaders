@@ -33,7 +33,7 @@ constexpr int   invaders_in_row       = 12;
 constexpr int   rows_with_invaders    = 6;
 //speed setup (greed per second)
 constexpr float default_invader_speed = 30.f;
-constexpr float default_ship_speed    = 250.f;
+constexpr float default_ship_speed    = 100.f;
 constexpr float default_shell_speed   = 200.f;
 constexpr float default_player_speed  = 400.f;
 //limits for player movement
@@ -41,6 +41,9 @@ constexpr float bottom_left_x   = default_border_size;
 constexpr float bottom_right_x  = default_x_size - default_border_size;
 constexpr float bottom_left_y   = default_y_size - default_border_size;
 constexpr float bottom_right_y  = default_y_size - default_border_size;
+//setup for game score
+constexpr int font_size      = 32;
+constexpr int invader_reward = 10;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -59,6 +62,11 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     std::memset(&game_control,0,sizeof(game_control));
     //shot every second
     game_config.invader_shot_period = framerate;
+    //initial setup for game score
+    game_status.score = 0;
+    game_status.score_text.setFont(resource_manager.game_font);
+    game_status.score_text.setCharacterSize(font_size);
+    game_status.score_text.setPosition(sf::Vector2f(default_border_size,0.f));
 }
 
 void Canvas::calculateItemsSpeed(const unsigned int framerate)
@@ -113,6 +121,8 @@ void Canvas::updateCanvas()
     }
     //update player ship
     window->draw(player->getSprite());
+    //update score
+    window->draw(game_status.score_text);
 }
 
 void Canvas::updateItemsPosition()
@@ -125,6 +135,8 @@ void Canvas::updateItemsPosition()
     for (Shell& shell : bullets){shell.updatePosition();}
     //update player ship
     player->updatePosition();
+    //update game score
+    game_status.score_text.setString("SCORE: " + std::to_string(game_status.score));
 }
 
 void Canvas::controlItemsPosition()
@@ -325,6 +337,7 @@ void Canvas::checkCollision()
                     //invader hit, make it invisible, make shot invisible
                     shell.setInvisible();
                     enemy.setInvisible();
+                    game_status.score += invader_reward;
                 }    
             }
         }
@@ -335,35 +348,39 @@ void Canvas::spawnEnemies()
 {
     spawnInvaders();
     // enemy ships
-    InvaderShip ship(sf::Vector2(default_border_size,default_border_size),game_config.enemy_ship_speed,true,grid.x - default_border_size);
+    InvaderShip ship(sf::Vector2(default_border_size,default_border_size*2.f),game_config.enemy_ship_speed,true,grid.x - default_border_size);
     ship.setTexture(resource_manager.enemy_ship);
     enemyShips.push_back(ship);
 }
 
 void Canvas::loadTextures()
 {
-    //resources are loaded from external files
-    if(!resource_manager.enemy_type_1.loadFromFile("rc/green.png"))
+    //textures
+    if(!resource_manager.enemy_type_1.loadFromFile("rc/textures/green.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_type_2.loadFromFile("rc/red.png"))
+    if(!resource_manager.enemy_type_2.loadFromFile("rc/textures/red.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_type_3.loadFromFile("rc/yellow.png"))
+    if(!resource_manager.enemy_type_3.loadFromFile("rc/textures/yellow.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.player.loadFromFile("rc/player.png"))
+    if(!resource_manager.player.loadFromFile("rc/textures/player.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_ship.loadFromFile("rc/extra.png"))
+    if(!resource_manager.enemy_ship.loadFromFile("rc/textures/extra.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-
+    //font
+    if(!resource_manager.game_font.loadFromFile("rc/fonts/SpaceMission.ttf"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
     resource_manager.enemy_type_1.setSmooth(true);
     resource_manager.enemy_type_2.setSmooth(true);
     resource_manager.enemy_type_3.setSmooth(true);
