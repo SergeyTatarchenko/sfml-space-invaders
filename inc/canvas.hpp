@@ -36,7 +36,9 @@ struct GameConfig
 struct ResourceManager
 {
     sf::Texture player;
-    sf::Texture enemy;
+    sf::Texture enemy_type_1;
+    sf::Texture enemy_type_2;
+    sf::Texture enemy_type_3;
     sf::Texture enemy_ship;
     sf::Texture shell;
 };
@@ -74,6 +76,8 @@ class Canvas
         std:: minstd_rand randomizer;
         /// @brief struct with textures for game objects 
         ResourceManager resource_manager;
+        /// @brief spawn invaders on the canvas
+        void spawnInvaders();
         /// @brief game event generator
         void generateGameEvent();
         /// @brief textures loading
@@ -87,7 +91,7 @@ class Canvas
         void updateItemsPosition();
         /// @brief control all items on canvas and remove them if they leave visible space
         void controlItemsPosition();
-        /// @brief check for sollision between sprites on the canvas
+        /// @brief check for collision between sprites on the canvas
         void checkCollision();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event

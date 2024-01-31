@@ -11,8 +11,8 @@
  #include <cmath>
 
 //default shell dimensions
-constexpr int shell_width         = 5;
-constexpr int shell_height        = 5;
+constexpr int shell_width         = 2;
+constexpr int shell_height        = 10;
 
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {
@@ -28,13 +28,13 @@ void Invader::updatePosition()
     if(isVisible() == true)
     {
         // Invader trajectory:
-        //  10 steps
+        //  60 steps
         // ---------->
         // |         |   
-        // |         | 10 steps
+        // |         | 20 steps
         // <---------|
-        const int step_x = 10;
-        const int step_y = 10;
+        const int step_x = 60;
+        const int step_y = 20;
         auto speed = getSpeed();
         sf::Vector2 vector(0.f,0.f);
 

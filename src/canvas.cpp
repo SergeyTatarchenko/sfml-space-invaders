@@ -26,13 +26,13 @@ constexpr float default_x_size  = 1000.f;
 constexpr float default_y_size  = 1000.f;
 //border size around game field
 constexpr float default_border_size = 50.f;
-//max 20 items per one row
-constexpr float grid_row_step = default_x_size/20.f;
+//max 10 items per one row
+constexpr float grid_row_step = default_x_size/15.f;
 //invaders constants for grid and speed
-constexpr int   invaders_in_row       = 18;
+constexpr int   invaders_in_row       = 12;
 constexpr int   rows_with_invaders    = 6;
 //speed setup (greed per second)
-constexpr float default_invader_speed = 60.f;
+constexpr float default_invader_speed = 30.f;
 constexpr float default_ship_speed    = 250.f;
 constexpr float default_shell_speed   = 200.f;
 constexpr float default_player_speed  = 400.f;
@@ -167,6 +167,51 @@ void Canvas::generateGameEvent()
     }
 }
 
+void Canvas::spawnInvaders()
+{
+    constexpr float init_x = default_border_size;
+    constexpr float init_y = default_border_size * 4.f;
+    
+    auto set_texture = [this](Invader &invader, int index)
+    {
+        switch (index)
+        {
+        case 0:
+        case 3:
+            invader.setTexture(resource_manager.enemy_type_1);
+            break;
+        case 1:
+        case 4:
+            invader.setTexture(resource_manager.enemy_type_2);
+            break;
+        case 2:
+        case 5:
+            invader.setTexture(resource_manager.enemy_type_3);
+            break;
+        default:
+            invader.setTexture(resource_manager.enemy_type_1);
+            break;
+        }
+    };
+
+    Invader invader(sf::Vector2f(0.f,0.f),game_config.invader_speed,true);
+
+    float offset_y = 0.f;
+    for(auto j = 0; j < rows_with_invaders; j++)
+    {
+        float offset_x = 0.f;
+        for(auto i = 0; i < invaders_in_row; i++)
+        {
+            invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
+            invader.setDefaultPosition();
+            set_texture(invader,j);
+            enemies.push_back(invader);
+            offset_x += grid_row_step;
+        }
+        offset_y += grid_row_step;
+    }
+}
+
 void Canvas::executeEvent(const sf::Event &event)
 {
     switch (event.type)
@@ -288,25 +333,7 @@ void Canvas::checkCollision()
 
 void Canvas::spawnEnemies()
 {
-    //enemies
-    Invader invader(sf::Vector2f(0.f,0.f),game_config.invader_speed,true);
-    constexpr float init_x = default_border_size;
-    constexpr float init_y = default_border_size * 2.f;
-    invader.setTexture(resource_manager.enemy);
-
-    float offset_y = 0.f;
-    for(auto j = 0; j < rows_with_invaders; j++)
-    {
-        float offset_x = 0.f;
-        for(auto i = 0; i < invaders_in_row; i++)
-        {
-            invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
-            invader.setDefaultPosition();
-            enemies.push_back(invader);
-            offset_x += grid_row_step;
-        }
-        offset_y += grid_row_step;
-    }
+    spawnInvaders();
     // enemy ships
     InvaderShip ship(sf::Vector2(default_border_size,default_border_size),game_config.enemy_ship_speed,true,grid.x - default_border_size);
     ship.setTexture(resource_manager.enemy_ship);
@@ -316,7 +343,15 @@ void Canvas::spawnEnemies()
 void Canvas::loadTextures()
 {
     //resources are loaded from external files
-    if(!resource_manager.enemy.loadFromFile("rc/green.png"))
+    if(!resource_manager.enemy_type_1.loadFromFile("rc/green.png"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    if(!resource_manager.enemy_type_2.loadFromFile("rc/red.png"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    if(!resource_manager.enemy_type_3.loadFromFile("rc/yellow.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
@@ -328,7 +363,10 @@ void Canvas::loadTextures()
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    resource_manager.enemy.setSmooth(true);
+
+    resource_manager.enemy_type_1.setSmooth(true);
+    resource_manager.enemy_type_2.setSmooth(true);
+    resource_manager.enemy_type_3.setSmooth(true);
     resource_manager.player.setSmooth(true);
     resource_manager.enemy_ship.setSmooth(true);
 }
