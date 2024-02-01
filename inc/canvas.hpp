@@ -18,35 +18,57 @@
 
 struct GameControl
 {
+    /// @brief frame tick counter
     uint32_t event_counter;
+    /// @brief label for player reload logic, when shot is not performed
     bool     player_reload;
+    /// @brief left key is pressed
     bool     left_pressed;
+    /// @brief right key is pressed
     bool     right_pressed;
 };
 
 struct GameConfig
 {
+    /// @brief shot period, compared with event_counter from GameControl
     unsigned int invader_shot_period;
+    /// @brief actual player speed, adjusted with actual framerate
     float player_speed;
+    /// @brief actual invader ship speed, adjusted with actual framerate
     float enemy_ship_speed;
+    /// @brief actual invader speed, adjusted with actual framerate
     float invader_speed;
+    /// @brief actual shell, adjusted with actual framerate
     float shell_speed;
+};
+
+struct GameMenuSprites
+{
+    /// @brief sprite with game score
+    sf::Text score;
 };
 
 struct GameStatus
 {
-    sf::Text score_text;
+    /// @brief actual game score
     int score;
 };
 
 struct ResourceManager
 {
+    /// @brief texture with player image
     sf::Texture player;
+    /// @brief texture with invader
     sf::Texture enemy_type_1;
+    /// @brief texture with alternative invader
     sf::Texture enemy_type_2;
+    /// @brief texture with alternative invader
     sf::Texture enemy_type_3;
+    /// @brief texture with enemy ship
     sf::Texture enemy_ship;
+    /// @brief texture with shell
     sf::Texture shell;
+    /// @brief font for text on canvas
     sf::Font game_font;
 };
 
@@ -76,11 +98,13 @@ class Canvas
         /// @brief actual view grid
         sf::Vector2f grid; 
         /// @brief struct with game control items
-        GameControl game_control;
+        GameControl control;
         /// @brief struct with game configuration
-        GameConfig game_config;
+        GameConfig config;
         /// @brief struct with game status
-        GameStatus game_status;
+        GameStatus status;
+        /// @brief struct with other canvas items, like score and player lives 
+        GameMenuSprites menu_sprites;
         /// @brief random number generator instance
         std:: minstd_rand randomizer;
         /// @brief struct with textures for game objects 

@@ -29,7 +29,7 @@ constexpr float default_border_size = 50.f;
 //max 10 items per one row
 constexpr float grid_row_step = default_x_size/15.f;
 //invaders constants for grid and speed
-constexpr int   invaders_in_row       = 12;
+constexpr int   invaders_in_row       = 13;
 constexpr int   rows_with_invaders    = 6;
 //speed setup (greed per second)
 constexpr float default_invader_speed = 30.f;
@@ -49,39 +49,36 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
 {
     //random generator used for enemy shot events
     randomizer.seed(ultimate_answer);
-    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
-    window->setActive(true);
-    window->setFramerateLimit(framerate);
     grid.x = default_x_size;
     grid.y = default_y_size;
     loadTextures();
     calculateItemsSpeed(framerate);
-    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid, game_config.player_speed));
+    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
+    window->setActive(true);
+    window->setFramerateLimit(framerate);
+    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid,config.player_speed));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setTexture(resource_manager.player);
-    std::memset(&game_control,0,sizeof(game_control));
+    std::memset(&control,0,sizeof(control));
+    std::memset(&status,0,sizeof(status));
     //shot every second
-    game_config.invader_shot_period = framerate;
-    //initial setup for game score
-    game_status.score = 0;
-    game_status.score_text.setFont(resource_manager.game_font);
-    game_status.score_text.setCharacterSize(font_size);
-    game_status.score_text.setPosition(sf::Vector2f(default_border_size,0.f));
+    config.invader_shot_period = framerate;
+    //setup game score sprite
+    menu_sprites.score.setFont(resource_manager.game_font);
+    menu_sprites.score.setCharacterSize(font_size);
+    menu_sprites.score.setPosition(sf::Vector2f(default_border_size,0.f));
 }
 
 void Canvas::calculateItemsSpeed(const unsigned int framerate)
 {
     if(framerate != 0)
     {
-        game_config.enemy_ship_speed = default_ship_speed/framerate;
-        game_config.invader_speed    = default_invader_speed/framerate;
-        game_config.player_speed     = default_player_speed/framerate;
-        game_config.shell_speed      = default_shell_speed/framerate;
+        config.enemy_ship_speed = default_ship_speed/framerate;
+        config.invader_speed    = default_invader_speed/framerate;
+        config.player_speed     = default_player_speed/framerate;
+        config.shell_speed      = default_shell_speed/framerate;
     }
-    else
-    {
-        std::memset(&game_config,0,sizeof(game_config));
-    }
+    else{std::memset(&config,0,sizeof(config));}
 }
 
 void Canvas::gameTask()
@@ -122,7 +119,7 @@ void Canvas::updateCanvas()
     //update player ship
     window->draw(player->getSprite());
     //update score
-    window->draw(game_status.score_text);
+    window->draw(menu_sprites.score);
 }
 
 void Canvas::updateItemsPosition()
@@ -136,7 +133,7 @@ void Canvas::updateItemsPosition()
     //update player ship
     player->updatePosition();
     //update game score
-    game_status.score_text.setString("SCORE: " + std::to_string(game_status.score));
+    menu_sprites.score.setString("SCORE: " + std::to_string(status.score));
 }
 
 void Canvas::controlItemsPosition()
@@ -156,12 +153,11 @@ void Canvas::controlItemsPosition()
 
 void Canvas::generateGameEvent()
 {
-    game_control.event_counter++;
-   
+    control.event_counter++;
     //random enemy shot every second
-    if((game_control.event_counter % game_config.invader_shot_period) == 0)
+    if((control.event_counter % config.invader_shot_period) == 0)
     {
-        game_control.event_counter = 0;
+        control.event_counter = 0;
         auto index = randomizer() % enemies.size();
         if(enemies[index].isVisible() == true)
         {
@@ -188,25 +184,23 @@ void Canvas::spawnInvaders()
     {
         switch (index)
         {
-        case 0:
-        case 3:
-            invader.setTexture(resource_manager.enemy_type_1);
-            break;
-        case 1:
-        case 4:
-            invader.setTexture(resource_manager.enemy_type_2);
-            break;
-        case 2:
-        case 5:
-            invader.setTexture(resource_manager.enemy_type_3);
-            break;
-        default:
-            invader.setTexture(resource_manager.enemy_type_1);
-            break;
+            case 1:
+            case 4:
+                invader.setTexture(resource_manager.enemy_type_2);
+                break;
+            case 2:
+            case 5:
+                invader.setTexture(resource_manager.enemy_type_3);
+                break;
+            case 0:
+            case 3:
+            default:
+                invader.setTexture(resource_manager.enemy_type_1);
+                break;
         }
     };
 
-    Invader invader(sf::Vector2f(0.f,0.f),game_config.invader_speed,true);
+    Invader invader(sf::Vector2f(0.f,0.f),config.invader_speed,true);
 
     float offset_y = 0.f;
     for(auto j = 0; j < rows_with_invaders; j++)
@@ -238,20 +232,20 @@ void Canvas::executeEvent(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    game_control.left_pressed = true;
+                    control.left_pressed = true;
                     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    game_control.right_pressed = true;
+                    control.right_pressed = true;
                     player->setMotionVector(sf::Vector2f(bottom_right_x,bottom_right_y));
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(game_control.player_reload == false)
+                    if(control.player_reload == false)
                     {
                         player->setShotRequest(true);
-                        game_control.player_reload = true;
+                        control.player_reload = true;
                     }
                     break;
                 default:
@@ -263,21 +257,21 @@ void Canvas::executeEvent(const sf::Event &event)
             switch(event.key.code)
             {
                 case sf::Keyboard::Key::Left:
-                    game_control.left_pressed = false;
+                    control.left_pressed = false;
                     break;
 
                 case sf::Keyboard::Key::Right:
-                    game_control.right_pressed = false;
+                    control.right_pressed = false;
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(game_control.player_reload == true){game_control.player_reload = false;}
+                    if(control.player_reload == true){control.player_reload = false;}
                     break;
                 
                 default:
                     break;
             }
-            if((game_control.left_pressed == false) && (game_control.right_pressed == false))
+            if((control.left_pressed == false) && (control.right_pressed == false))
             {
                 player->setMotionVector(player->getRectangle().getPosition());
             }
@@ -306,7 +300,7 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
     else
     {
         //create new one
-        Shell shell(position,game_config.shell_speed,shell_type);
+        Shell shell(position,config.shell_speed,shell_type);
         shell.setTexture(resource_manager.shell);
         shell.setSpriteColor(sf::Color(40, 236, 250));
         bullets.push_back(shell);
@@ -337,7 +331,7 @@ void Canvas::checkCollision()
                     //invader hit, make it invisible, make shot invisible
                     shell.setInvisible();
                     enemy.setInvisible();
-                    game_status.score += invader_reward;
+                    status.score += invader_reward;
                 }    
             }
         }
@@ -348,7 +342,7 @@ void Canvas::spawnEnemies()
 {
     spawnInvaders();
     // enemy ships
-    InvaderShip ship(sf::Vector2(default_border_size,default_border_size*2.f),game_config.enemy_ship_speed,true,grid.x - default_border_size);
+    InvaderShip ship(sf::Vector2(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true,grid.x - default_border_size);
     ship.setTexture(resource_manager.enemy_ship);
     enemyShips.push_back(ship);
 }
@@ -381,9 +375,9 @@ void Canvas::loadTextures()
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
+    resource_manager.player.setSmooth(true);
+    resource_manager.enemy_ship.setSmooth(true);
     resource_manager.enemy_type_1.setSmooth(true);
     resource_manager.enemy_type_2.setSmooth(true);
     resource_manager.enemy_type_3.setSmooth(true);
-    resource_manager.player.setSmooth(true);
-    resource_manager.enemy_ship.setSmooth(true);
 }

@@ -112,4 +112,11 @@ class PlayerShip : public Object
         sf::Vector2f motion_vector;
 };
 
+struct Obstacle : public Object
+{
+        /// @brief default constructor
+        /// @param position initial coordinates 
+        Obstacle(sf::Vector2f position);    
+};
+
 #endif //ITEMS_H
