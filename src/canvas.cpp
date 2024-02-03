@@ -24,6 +24,8 @@ constexpr float default_start_x = 0.f;
 constexpr float default_start_y = 0.f;
 constexpr float default_x_size  = 1000.f;
 constexpr float default_y_size  = 1000.f;
+constexpr int frame_width  = 10;
+constexpr int frame_length = 50;
 //border size around game field
 constexpr float default_border_size = 50.f;
 //max 10 items per one row
@@ -37,8 +39,8 @@ constexpr float default_ship_speed    = 100.f;
 constexpr float default_shell_speed   = 200.f;
 constexpr float default_player_speed  = 400.f;
 //limits for player movement
-constexpr float bottom_left_x   = default_border_size;
-constexpr float bottom_right_x  = default_x_size - default_border_size;
+constexpr float bottom_left_x   = static_cast<float>(frame_width);
+constexpr float bottom_right_x  = default_x_size - static_cast<float>(frame_width);
 constexpr float bottom_left_y   = default_y_size - default_border_size;
 constexpr float bottom_right_y  = default_y_size - default_border_size;
 //setup for game score
@@ -102,6 +104,13 @@ void Canvas::gameTask()
 
 void Canvas::updateCanvas()
 {
+    //update score indicator
+    window->draw(menu_sprites.score);
+    //update lives indicator
+    drawPlayerLives();
+    //update menu frames
+    for(Object & frame : menu_sprites.frames){window->draw(frame.getSprite());}
+    
     //update enemies 
     for (Invader& enemy : enemies)
     {
@@ -119,13 +128,6 @@ void Canvas::updateCanvas()
     }
     //update player ship
     window->draw(player->getSprite());
-    //update score
-    window->draw(menu_sprites.score);
-    //update menu frames
-    for(Object & frame : frames)
-    {
-        window->draw(frame.getSprite());
-    }
 }
 
 void Canvas::updateItemsPosition()
@@ -226,6 +228,7 @@ void Canvas::spawnInvaders()
 
 void Canvas::executeEvent(const sf::Event &event)
 {
+    sf::IntRect player_size = player->getSprite().getTextureRect();
     switch (event.type)
     {
         case sf::Event::Closed:
@@ -244,7 +247,7 @@ void Canvas::executeEvent(const sf::Event &event)
 
                 case sf::Keyboard::Key::Right:
                     control.right_pressed = true;
-                    player->setMotionVector(sf::Vector2f(bottom_right_x,bottom_right_y));
+                    player->setMotionVector(sf::Vector2f(bottom_right_x - static_cast<float>(player_size.width),bottom_right_y));
                     break;
 
                 case sf::Keyboard::Key::Space:
@@ -346,38 +349,51 @@ void Canvas::checkCollision()
 
 void Canvas::setMenuSprites()
 {
-    constexpr int frame_width  = 10;
-    constexpr int frame_length = 50;
     //setup game score item
     menu_sprites.score.setFont(resource_manager.game_font);
     menu_sprites.score.setCharacterSize(font_size);
     menu_sprites.score.setPosition(sf::Vector2f(static_cast<float>(frame_length),static_cast<float>(frame_width)));
-    
+    //player lives indicator
+    menu_sprites.live.setTexture(resource_manager.player);
     //setup canvas frames
-    //up
-    frames[0].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
-    frames[0].setTexture(resource_manager.frame);
-    frames[0].setSpriteColor(sf::Color::White);
-    frames[0].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    //up 1
+    menu_sprites.frames[0].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[0].setTexture(resource_manager.frame);
+    menu_sprites.frames[0].setSpriteColor(sf::Color::White);
+    menu_sprites.frames[0].setPosition(sf::Vector2f(default_start_x,default_start_y));
     //right
-    frames[1].setSpriteRectangle(sf::IntRect(0,0,frame_width,frame_length));
-    frames[1].setTexture(resource_manager.frame);
-    frames[1].setSpriteColor(sf::Color::White);
-    frames[1].setPosition(sf::Vector2f(default_x_size - static_cast<float>(frame_width),default_start_y));
-    //down
-    frames[2].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
-    frames[2].setTexture(resource_manager.frame);
-    frames[2].setSpriteColor(sf::Color::White);
-    frames[2].setPosition(sf::Vector2f(default_start_x,static_cast<float>(frame_length)));
+    menu_sprites.frames[1].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
+    menu_sprites.frames[1].setTexture(resource_manager.frame);
+    menu_sprites.frames[1].setSpriteColor(sf::Color::White);
+    menu_sprites.frames[1].setPosition(sf::Vector2f(default_x_size - static_cast<float>(frame_width),default_start_y));
+    //up 2
+    menu_sprites.frames[2].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[2].setTexture(resource_manager.frame);
+    menu_sprites.frames[2].setSpriteColor(sf::Color::White);
+    menu_sprites.frames[2].setPosition(sf::Vector2f(default_start_x,static_cast<float>(frame_length)));
     //left
-    frames[3].setSpriteRectangle(sf::IntRect(0,0,frame_width,frame_length));
-    frames[3].setTexture(resource_manager.frame);
-    frames[3].setSpriteColor(sf::Color::White);
-    frames[3].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    menu_sprites.frames[3].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
+    menu_sprites.frames[3].setTexture(resource_manager.frame);
+    menu_sprites.frames[3].setSpriteColor(sf::Color::White);
+    menu_sprites.frames[3].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    //down
+    menu_sprites.frames[4].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[4].setTexture(resource_manager.frame);
+    menu_sprites.frames[4].setSpriteColor(sf::Color::White);
+    menu_sprites.frames[4].setPosition(sf::Vector2f(default_start_x,default_y_size - static_cast<float>(frame_width)));
+}
 
-    //menu_sprites.frame_vertical.setTexture(resource_manager.frame);
-    //menu_sprites.frame_vertical.setColor(sf::Color(58, 194, 177));
-
+void Canvas::drawPlayerLives()
+{
+    constexpr float border = 10.f;
+    sf::IntRect texture_size =  menu_sprites.live.getTextureRect();
+    float offset = default_x_size - frame_width - static_cast<float>(texture_size.width) - border;
+    for(auto i = 0; i < status.player_lives; i++)
+    {
+        menu_sprites.live.setPosition(sf::Vector2f(offset,static_cast<float>(frame_width)));
+        window->draw(menu_sprites.live);
+        offset -= static_cast<float>(texture_size.width) + border;
+    }
 }
 
 void Canvas::spawnEnemies()

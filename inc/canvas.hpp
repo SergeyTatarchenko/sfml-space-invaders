@@ -48,7 +48,9 @@ struct GameMenuSprites
     /// @brief sprite with game score
     sf::Text score;
     /// @brief sprite with player live
-    sf::Sprite live; 
+    sf::Sprite live;
+    /// @brief array with canvas frames
+    std::array<Object,5> frames; 
 };
 
 struct GameStatus
@@ -98,8 +100,6 @@ class Canvas
         std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
-        /// @brief array with canvas frames
-        std::array<Object,4> frames;
         /// @brief pointer to player ship
         std::unique_ptr<PlayerShip> player;        
         /// @brief pointer to SFML window
@@ -137,6 +137,7 @@ class Canvas
         void checkCollision();
         /// @brief setup all non moving canvas items 
         void setMenuSprites();
+        void drawPlayerLives();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void executeEvent(const sf::Event& event);
