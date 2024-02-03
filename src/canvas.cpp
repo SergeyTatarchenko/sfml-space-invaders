@@ -62,6 +62,7 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     window->setActive(true);
     window->setFramerateLimit(framerate);
     player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid,config.player_speed));
+    player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setTexture(resource_manager.player);
     std::memset(&control,0,sizeof(control));
@@ -327,9 +328,10 @@ void Canvas::checkCollision()
 
             if(player->getRectangle().intersects(shell.getRectangle()))
             {
-                //logic for player hit here
+                handlePlayerHitting();
             }
         }
+        //collision between player shells and invaders
         if((shell.getShellType() == ShellType::PLAYER) && (shell.isVisible() == true))
         {
             for (Invader& enemy : enemies)
@@ -385,14 +387,38 @@ void Canvas::setMenuSprites()
 
 void Canvas::drawPlayerLives()
 {
+    //small border to prevent sprites from sticking together
     constexpr float border = 10.f;
     sf::IntRect texture_size =  menu_sprites.live.getTextureRect();
+    //initial offset, lives will be drawn from right to left
     float offset = default_x_size - frame_width - static_cast<float>(texture_size.width) - border;
     for(auto i = 0; i < status.player_lives; i++)
     {
         menu_sprites.live.setPosition(sf::Vector2f(offset,static_cast<float>(frame_width)));
         window->draw(menu_sprites.live);
         offset -= static_cast<float>(texture_size.width) + border;
+    }
+}
+
+void Canvas::handlePlayerHitting()
+{
+    if(status.player_lives > 0)
+    {
+        //decrease player lives counter
+        status.player_lives--;
+        //remove all shells from canvas
+        for (Shell& shell : bullets)
+        {
+            shell.setInvisible();
+        }
+        //move player to default position
+        player->setDefaultPosition();
+        player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
+        control.event_counter = 0;
+    }
+    else
+    {
+        //game over logic
     }
 }
 

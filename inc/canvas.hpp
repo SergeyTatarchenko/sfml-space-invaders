@@ -137,7 +137,10 @@ class Canvas
         void checkCollision();
         /// @brief setup all non moving canvas items 
         void setMenuSprites();
+        /// @brief draw actual number of player lives
         void drawPlayerLives();
+        /// @brief handler for player hitting by invader event
+        void handlePlayerHitting();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void executeEvent(const sf::Event& event);

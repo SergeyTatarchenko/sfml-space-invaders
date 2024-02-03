@@ -135,9 +135,7 @@ void Shell::updatePosition()
 
 PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
 {
-
-    this->limits       = limits;
-    invincible   = true;
+    this->limits = limits;
     shot_request = false;
     setPosition(position);
     setVisible();

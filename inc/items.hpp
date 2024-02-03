@@ -103,8 +103,6 @@ class PlayerShip : public Object
         
     private:
         /// @brief 
-        bool invincible;
-        /// @brief 
         bool shot_request;
         /// @brief 
         sf::Vector2f limits;
