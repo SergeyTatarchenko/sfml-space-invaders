@@ -42,8 +42,11 @@ constexpr float bottom_right_x  = default_x_size - default_border_size;
 constexpr float bottom_left_y   = default_y_size - default_border_size;
 constexpr float bottom_right_y  = default_y_size - default_border_size;
 //setup for game score
-constexpr int font_size      = 32;
-constexpr int invader_reward = 10;
+constexpr int font_size = 32;
+//game logic config
+constexpr int invader_reward       = 10;
+constexpr int default_num_of_lives = 3;
+constexpr int max_num_of_lives     = 5;
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -61,12 +64,10 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     player->setTexture(resource_manager.player);
     std::memset(&control,0,sizeof(control));
     std::memset(&status,0,sizeof(status));
-    //shot every second
+    setMenuSprites();
+    //initial game setup
     config.invader_shot_period = framerate;
-    //setup game score sprite
-    menu_sprites.score.setFont(resource_manager.game_font);
-    menu_sprites.score.setCharacterSize(font_size);
-    menu_sprites.score.setPosition(sf::Vector2f(default_border_size,0.f));
+    status.player_lives        = default_num_of_lives;
 }
 
 void Canvas::calculateItemsSpeed(const unsigned int framerate)
@@ -120,6 +121,11 @@ void Canvas::updateCanvas()
     window->draw(player->getSprite());
     //update score
     window->draw(menu_sprites.score);
+    //update menu frames
+    for(Object & frame : frames)
+    {
+        window->draw(frame.getSprite());
+    }
 }
 
 void Canvas::updateItemsPosition()
@@ -336,6 +342,42 @@ void Canvas::checkCollision()
             }
         }
     }
+}
+
+void Canvas::setMenuSprites()
+{
+    constexpr int frame_width  = 10;
+    constexpr int frame_length = 50;
+    //setup game score item
+    menu_sprites.score.setFont(resource_manager.game_font);
+    menu_sprites.score.setCharacterSize(font_size);
+    menu_sprites.score.setPosition(sf::Vector2f(static_cast<float>(frame_length),static_cast<float>(frame_width)));
+    
+    //setup canvas frames
+    //up
+    frames[0].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    frames[0].setTexture(resource_manager.frame);
+    frames[0].setSpriteColor(sf::Color::White);
+    frames[0].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    //right
+    frames[1].setSpriteRectangle(sf::IntRect(0,0,frame_width,frame_length));
+    frames[1].setTexture(resource_manager.frame);
+    frames[1].setSpriteColor(sf::Color::White);
+    frames[1].setPosition(sf::Vector2f(default_x_size - static_cast<float>(frame_width),default_start_y));
+    //down
+    frames[2].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    frames[2].setTexture(resource_manager.frame);
+    frames[2].setSpriteColor(sf::Color::White);
+    frames[2].setPosition(sf::Vector2f(default_start_x,static_cast<float>(frame_length)));
+    //left
+    frames[3].setSpriteRectangle(sf::IntRect(0,0,frame_width,frame_length));
+    frames[3].setTexture(resource_manager.frame);
+    frames[3].setSpriteColor(sf::Color::White);
+    frames[3].setPosition(sf::Vector2f(default_start_x,default_start_y));
+
+    //menu_sprites.frame_vertical.setTexture(resource_manager.frame);
+    //menu_sprites.frame_vertical.setColor(sf::Color(58, 194, 177));
+
 }
 
 void Canvas::spawnEnemies()

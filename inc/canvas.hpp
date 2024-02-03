@@ -12,6 +12,7 @@
 #define CANVAS_H
 
 #include <vector>
+#include <array>
 #include <memory>
 #include <random>
 #include "items.hpp"
@@ -38,20 +39,24 @@ struct GameConfig
     float enemy_ship_speed;
     /// @brief actual invader speed, adjusted with actual framerate
     float invader_speed;
-    /// @brief actual shell, adjusted with actual framerate
+    /// @brief actual shell speed, adjusted with actual framerate
     float shell_speed;
 };
 
-struct GameMenuSprites
+struct GameMenuSprites 
 {
     /// @brief sprite with game score
     sf::Text score;
+    /// @brief sprite with player live
+    sf::Sprite live; 
 };
 
 struct GameStatus
 {
     /// @brief actual game score
     int score;
+    /// @brief actual number of player lives
+    int player_lives;
 };
 
 struct ResourceManager
@@ -68,6 +73,8 @@ struct ResourceManager
     sf::Texture enemy_ship;
     /// @brief texture with shell
     sf::Texture shell;
+    /// @brief texture with canvas frame
+    sf::Texture frame;
     /// @brief font for text on canvas
     sf::Font game_font;
 };
@@ -91,6 +98,8 @@ class Canvas
         std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
+        /// @brief array with canvas frames
+        std::array<Object,4> frames;
         /// @brief pointer to player ship
         std::unique_ptr<PlayerShip> player;        
         /// @brief pointer to SFML window
@@ -126,11 +135,13 @@ class Canvas
         void controlItemsPosition();
         /// @brief check for collision between sprites on the canvas
         void checkCollision();
+        /// @brief setup all non moving canvas items 
+        void setMenuSprites();
         /// @brief SFML event executor for windowEventHandler
         /// @param event reference to actual captured event
         void executeEvent(const sf::Event& event);
         /// @brief generate a new shell on the canvas
-        /// @param rectangle reference to object rectangle from which shell be generated (shot amimation)
+        /// @param rectangle reference to object rectangle from which shell be generated (shot animation)
         /// @param shell_type shell type (who shot this shell)
         void objectShot(const sf::FloatRect& rectangle, const ShellType shell_type);
 };      

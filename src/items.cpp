@@ -200,5 +200,6 @@ void PlayerShip::updatePosition()
 
 Obstacle::Obstacle(sf::Vector2f position)
 {
-    
+    setPosition(position);
+    setVisible();
 }

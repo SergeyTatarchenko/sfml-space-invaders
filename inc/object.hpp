@@ -38,7 +38,7 @@ class Object
         /// @brief setup sprite rectangle
         /// @param rectangle reference to expected rectangle
         void setSpriteRectangle(const sf::IntRect& rectangle);
-        /// @brief change sprite color and 
+        /// @brief change sprite color
         /// @param color new color and transparency level
         void setSpriteColor(const sf::Color &color);
         /// @brief set object as visible on the canvas 
