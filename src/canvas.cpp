@@ -12,20 +12,21 @@
 #include <cstring>
 #include "canvas.hpp"
 #include "items.hpp"
+////////////////////////GAME SETTINGS AND CONSTANTS/////////////////////////////
 
-//framerate limit
-constexpr int max_framerate = 120;
-//init for random generator 
-constexpr int ultimate_answer = 42;
+constexpr int ultimate_answer = 42;//init for random generator 
 //window title
 static const sf::String title = "Space Invaders";
-//default size for coordinates for main view
+//game version
+static const sf::String version = "0.01";
+//sizes for main view coordinates
 constexpr float default_start_x = 0.f;
 constexpr float default_start_y = 0.f;
 constexpr float default_x_size  = 1000.f;
 constexpr float default_y_size  = 1000.f;
-constexpr int frame_width  = 10;
-constexpr int frame_length = 50;
+//sizes for white frames around the canvas
+constexpr int   frame_width     = 10;
+constexpr int   frame_length    = 50;
 //border size around game field
 constexpr float default_border_size = 50.f;
 //max 10 items per one row
@@ -43,12 +44,14 @@ constexpr float bottom_left_x   = static_cast<float>(frame_width);
 constexpr float bottom_right_x  = default_x_size - static_cast<float>(frame_width);
 constexpr float bottom_left_y   = default_y_size - default_border_size;
 constexpr float bottom_right_y  = default_y_size - default_border_size;
-//setup for game score
+//setup for game score text size
 constexpr int font_size = 32;
 //game logic config
 constexpr int invader_reward       = 10;
 constexpr int default_num_of_lives = 3;
 constexpr int max_num_of_lives     = 5;
+
+////////////////////////////////////////////////////////////////////////////////
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
@@ -69,6 +72,7 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     std::memset(&status,0,sizeof(status));
     setMenuSprites();
     //initial game setup
+    status.game_status         = GameStatus::NOT_STARTED;
     config.invader_shot_period = framerate;
     status.player_lives        = default_num_of_lives;
 }
@@ -90,16 +94,32 @@ void Canvas::gameTask()
     sf::Event event;
     while (window->isOpen())
     {
-        generateGameEvent();
         while(window->pollEvent(event)){executeEvent(event);}
         sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
         window->setView(view);
-        window->clear(sf::Color::Black); 
-        updateCanvas();
+        window->clear(sf::Color::Black);
+        switch(status.game_status)
+        {
+            case GameStatus::NOT_STARTED:
+                drawWelcomeWindow();
+                break;
+            
+            case GameStatus::RUNNING:
+                updateCanvas();
+                generateGameEvent();
+                controlItemsPosition();
+                checkCollision();
+                updateItemsPosition();
+                break;
+            
+            case GameStatus::GAME_OVER:
+                drawGameOverScreen();
+                break;
+                
+            default:
+                break;
+        }
         window->display();
-        controlItemsPosition();
-        checkCollision();
-        updateItemsPosition();
     }
 }
 
@@ -252,7 +272,11 @@ void Canvas::executeEvent(const sf::Event &event)
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(control.player_reload == false)
+                    if(status.game_status == GameStatus::NOT_STARTED)
+                    {
+                        status.game_status = GameStatus::RUNNING;
+                    }
+                    else if(control.player_reload == false)
                     {
                         player->setShotRequest(true);
                         control.player_reload = true;
@@ -400,6 +424,55 @@ void Canvas::drawPlayerLives()
     }
 }
 
+void Canvas::drawWelcomeWindow()
+{
+    sf::Text welcome_text;
+    sf::Vector2f position(default_border_size,default_border_size);
+    welcome_text.setFont(resource_manager.game_font);
+    welcome_text.setCharacterSize(font_size);
+
+    welcome_text.setString(title + " version : " + version);
+    welcome_text.setPosition(position);
+    window->draw(welcome_text);
+    position.y += default_border_size;
+
+    welcome_text.setString("Controls:");
+    welcome_text.setPosition(position);
+    window->draw(welcome_text);
+    position.y += default_border_size;
+
+    welcome_text.setString("Shot - Space Bar");
+    welcome_text.setPosition(position);
+    window->draw(welcome_text);
+    position.y += default_border_size;
+
+    welcome_text.setString("Movement - arrows");
+    welcome_text.setPosition(position);
+    window->draw(welcome_text);
+    position.y += default_border_size;
+    
+    welcome_text.setString("Press Space key to start...");
+    welcome_text.setPosition(position);
+    window->draw(welcome_text);
+}
+
+void Canvas::drawGameOverScreen()
+{
+    sf::Text text;
+    sf::Vector2f position(default_border_size,default_border_size);
+    text.setFont(resource_manager.game_font);
+    text.setCharacterSize(font_size);
+
+    text.setString("GAME OVER");
+    text.setPosition(position);
+    window->draw(text);
+    position.y += default_border_size;
+
+    text.setString("Your score : " + std::to_string(status.score));
+    text.setPosition(position);
+    window->draw(text);
+}
+
 void Canvas::handlePlayerHitting()
 {
     if(status.player_lives > 0)
@@ -407,19 +480,13 @@ void Canvas::handlePlayerHitting()
         //decrease player lives counter
         status.player_lives--;
         //remove all shells from canvas
-        for (Shell& shell : bullets)
-        {
-            shell.setInvisible();
-        }
+        for (Shell& shell : bullets){shell.setInvisible();}
         //move player to default position
         player->setDefaultPosition();
         player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
         control.event_counter = 0;
     }
-    else
-    {
-        //game over logic
-    }
+    else{status.game_status = GameStatus::GAME_OVER;}
 }
 
 void Canvas::spawnEnemies()

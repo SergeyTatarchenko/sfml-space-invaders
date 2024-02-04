@@ -17,6 +17,13 @@
 #include <random>
 #include "items.hpp"
 
+enum class GameStatus
+{
+    NOT_STARTED,
+    RUNNING,
+    GAME_OVER
+};
+
 struct GameControl
 {
     /// @brief frame tick counter
@@ -47,18 +54,22 @@ struct GameMenuSprites
 {
     /// @brief sprite with game score
     sf::Text score;
+    /// @brief text with initial text
+    sf::Text start_text;
     /// @brief sprite with player live
     sf::Sprite live;
     /// @brief array with canvas frames
     std::array<Object,5> frames; 
 };
 
-struct GameStatus
+struct GameElements
 {
     /// @brief actual game score
     int score;
     /// @brief actual number of player lives
     int player_lives;
+    /// @brief flag if game was started by player
+    GameStatus game_status;
 };
 
 struct ResourceManager
@@ -111,7 +122,7 @@ class Canvas
         /// @brief struct with game configuration
         GameConfig config;
         /// @brief struct with game status
-        GameStatus status;
+        GameElements status;
         /// @brief struct with other canvas items, like score and player lives 
         GameMenuSprites menu_sprites;
         /// @brief random number generator instance
@@ -139,6 +150,10 @@ class Canvas
         void setMenuSprites();
         /// @brief draw actual number of player lives
         void drawPlayerLives();
+        /// @brief draw window with welcome and press and key screen
+        void drawWelcomeWindow();
+        /// @brief draw window with game over and final score
+        void drawGameOverScreen();
         /// @brief handler for player hitting by invader event
         void handlePlayerHitting();
         /// @brief SFML event executor for windowEventHandler
