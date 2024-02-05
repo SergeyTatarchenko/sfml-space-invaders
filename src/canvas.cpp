@@ -47,9 +47,12 @@ constexpr float bottom_right_y  = default_y_size - default_border_size;
 //setup for game score text size
 constexpr int font_size = 32;
 //game logic config
+constexpr int invader_shot_period_s = 1;
+constexpr int ship_spawn_period_s   = 15;
+
 constexpr int invader_reward       = 10;
 constexpr int invader_ship_reward  = 250;
-constexpr int default_num_of_lives = 1;
+constexpr int default_num_of_lives = 3;
 constexpr int max_num_of_lives     = 5;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,12 +72,18 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setTexture(resource_manager.player);
+
+    invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true,grid.x - default_border_size));
+    invader_ship->setTexture(resource_manager.enemy_ship);
+    invader_ship->setInvisible();
+
     std::memset(&control,0,sizeof(control));
     std::memset(&status,0,sizeof(status));
     setMenuSprites();
     //initial game setup
     status.game_status         = GameStatus::NOT_STARTED;
-    config.invader_shot_period = framerate;
+    config.invader_shot_period = framerate * invader_shot_period_s;
+    config.ship_spawn_period   = framerate * ship_spawn_period_s;
     status.player_lives        = default_num_of_lives;
 }
 
@@ -137,11 +146,6 @@ void Canvas::updateCanvas()
     for (Invader& enemy : enemies)
     {
         if(enemy.isVisible() == true){window->draw(enemy.getSprite());}
-    }
-    //update enemy ships
-    for (InvaderShip& ship : enemyShips)
-    {
-        if(ship.isVisible() == true){window->draw(ship.getSprite());}
     }    
     //update bullets
     for (Shell& shell : bullets)
@@ -153,6 +157,8 @@ void Canvas::updateCanvas()
     {
         if(obstacle.isVisible() == true){window->draw(obstacle.getSprite());}
     }
+    //update enemy ship
+    if(invader_ship->isVisible() == true){window->draw(invader_ship->getSprite());}
     //update player ship
     window->draw(player->getSprite());
 }
@@ -161,8 +167,8 @@ void Canvas::updateItemsPosition()
 {
     //update enemies
     for (Invader& enemy : enemies){enemy.updatePosition();}
-    //update enemy ships
-    for (InvaderShip& ship : enemyShips){ship.updatePosition();}
+    //update enemy ship
+    invader_ship->updatePosition();
     //update bullets
     for (Shell& shell : bullets){shell.updatePosition();}
     //update player ship
@@ -176,12 +182,26 @@ void Canvas::controlItemsPosition()
     //bullets control
     for (Shell& shell : bullets)
     {
-        auto position = shell.getRectangle().getPosition();
-        if((position.x > grid.x) || (position.x < default_start_x) ||
-           (position.y > grid.y) || (position.y < default_start_y)
-          )
+        if(shell.isVisible() == true)
         {
-            shell.setInvisible();
+            auto position = shell.getRectangle().getPosition();
+            if((position.x > grid.x) || (position.x < default_start_x) ||
+            (position.y > grid.y) || (position.y < default_start_y)
+            )
+            {
+                shell.setInvisible();
+            }
+        }
+    }
+    //enemy ship control
+    if(invader_ship->isVisible() == true)
+    {
+        auto position = invader_ship->getRectangle().getPosition();
+        if((position.x > grid.x) || (position.x < default_start_x) ||
+        (position.y > grid.y) || (position.y < default_start_y)
+        )
+        {
+            invader_ship->setInvisible();
         }
     }
 }
@@ -192,7 +212,6 @@ void Canvas::generateGameEvent()
     //random enemy shot every second
     if((control.event_counter % config.invader_shot_period) == 0)
     {
-        control.event_counter = 0;
         auto index = randomizer() % enemies.size();
         if(enemies[index].isVisible() == true)
         {
@@ -200,6 +219,10 @@ void Canvas::generateGameEvent()
             objectShot(rectangle,ShellType::ENEMY);
         }
         
+    }
+    if((control.event_counter % config.ship_spawn_period) == 0)
+    {
+        spawnInvaderShip();
     }
     //player shot handle 
     if(player->getShotRequest() == true)
@@ -301,6 +324,12 @@ void Canvas::spawnObstacles()
             init.y -= rectangle.height;
         } 
     }
+}
+
+void Canvas::spawnInvaderShip()
+{
+    invader_ship->setDefaultPosition();
+    invader_ship->setVisible();
 }
 
 void Canvas::executeEvent(const sf::Event &event)
@@ -573,16 +602,6 @@ void Canvas::handlePlayerHitting()
         control.event_counter = 0;
     }
     else{status.game_status = GameStatus::GAME_OVER;}
-}
-
-void Canvas::spawnEnemies()
-{
-    spawnInvaders();
-    spawnObstacles();
-    // enemy ships
-    InvaderShip ship(sf::Vector2(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true,grid.x - default_border_size);
-    ship.setTexture(resource_manager.enemy_ship);
-    enemyShips.push_back(ship);
 }
 
 void Canvas::loadTextures()

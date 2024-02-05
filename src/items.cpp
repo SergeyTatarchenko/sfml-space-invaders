@@ -61,6 +61,7 @@ InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float
     //start with move right
     direction   = ItemDirection::RIGHT;
     this->range = range;
+    setInitPosition(position);
     setPosition(position);
     setSpeed(speed);
     if(visible == true){setVisible();}
@@ -70,20 +71,13 @@ InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float
 void InvaderShip::updatePosition()
 {
     // Invader ship trajectory:
-    //  n steps, depends on this->range
     // --------------->
+    //        or
     // <--------------|
     if(isVisible() == true)
     {
-        auto def_position = getDefaultPosition();
-        auto rectangle    = getRectangle(); 
-        auto position     = rectangle.getPosition();
-        auto speed        = getSpeed();
-        sf::Vector2 vector(speed,0.f);
-
-        //turn back in case of reaching end of range
-        if((position.x + speed + rectangle.width) > (def_position.x + range)){direction = ItemDirection::LEFT;}
-        else if((position.x - speed) < def_position.x){this->direction = ItemDirection::RIGHT;}
+        sf::Vector2 vector( getSpeed(),0.f);
+       
         switch(this->direction)
         {
             case ItemDirection::LEFT:
@@ -94,6 +88,11 @@ void InvaderShip::updatePosition()
         }    
         move(vector); 
     }       
+}
+
+void InvaderShip::setDirection(const ItemDirection direction)
+{
+    this->direction = direction;
 }
 
 Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)

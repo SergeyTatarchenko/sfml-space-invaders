@@ -40,6 +40,8 @@ struct GameConfig
 {
     /// @brief shot period, compared with event_counter from GameControl
     unsigned int invader_shot_period;
+    /// @brief ship spawn period, compared with event_counter from GameControl
+    unsigned int ship_spawn_period;
     /// @brief actual player speed, adjusted with actual framerate
     float player_speed;
     /// @brief actual invader ship speed, adjusted with actual framerate
@@ -104,14 +106,10 @@ class Canvas
         Canvas(const unsigned int width, unsigned int height, const unsigned int framerate);
         /// @brief game main function
         void gameTask();
-        /// @brief spawn enemies on canvas
-        void spawnEnemies();
-        
+
     private:
         /// @brief vector with invaders
         std::vector<Invader> enemies;
-        /// @brief vector with invader ships
-        std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
         /// @brief vector with player obstacles from invaders
@@ -120,6 +118,8 @@ class Canvas
         std::unique_ptr<PlayerShip> player;        
         /// @brief pointer to SFML window
         std::unique_ptr<sf::RenderWindow> window;
+        /// @brief pointer to invader ship
+        std::unique_ptr<InvaderShip> invader_ship;
         /// @brief actual view grid
         sf::Vector2f grid; 
         /// @brief struct with game control items
@@ -138,6 +138,8 @@ class Canvas
         void spawnInvaders();
         /// @brief spawn player obstacles on the canvas
         void spawnObstacles();
+        /// @brief spawn invader ship on the canvas
+        void spawnInvaderShip();
         /// @brief game event generator
         void generateGameEvent();
         /// @brief textures loading

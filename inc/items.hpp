@@ -52,10 +52,14 @@ class InvaderShip : public Object
         InvaderShip(sf::Vector2f position, float speed, bool visible, float range);
         /// @brief change object position according to internal trajectory function
         void updatePosition();
+        /// @brief update ship move direction
+        /// @param direction new direction
+        void setDirection(const ItemDirection direction);
     
     private:
         /// @brief used in object trajectory
         float range;
+        /// @brief actual ship direction
         ItemDirection direction;
 };
 
