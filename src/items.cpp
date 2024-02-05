@@ -56,11 +56,10 @@ void Invader::updatePosition()
     }
 }
 
-InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible, float range)
+InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible)
 {
     //start with move right
     direction   = ItemDirection::RIGHT;
-    this->range = range;
     setInitPosition(position);
     setPosition(position);
     setSpeed(speed);
@@ -135,9 +134,8 @@ void Shell::updatePosition()
     }     
 }
 
-PlayerShip::PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed)
+PlayerShip::PlayerShip(sf::Vector2f position, float speed)
 {
-    this->limits = limits;
     shot_request = false;
     setPosition(position);
     setVisible();

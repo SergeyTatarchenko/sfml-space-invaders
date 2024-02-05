@@ -39,6 +39,7 @@ class Invader : public Object
         void updatePosition();
     
     private:
+        /// @brief actual position counter, used in updatePosition
         int position_counter;
 };
 
@@ -49,7 +50,7 @@ class InvaderShip : public Object
         /// @param position initial coordinates 
         /// @param speed object speed on canvas
         /// @param visible object visibility on canvas
-        InvaderShip(sf::Vector2f position, float speed, bool visible, float range);
+        InvaderShip(sf::Vector2f position, float speed, bool visible);
         /// @brief change object position according to internal trajectory function
         void updatePosition();
         /// @brief update ship move direction
@@ -57,8 +58,6 @@ class InvaderShip : public Object
         void setDirection(const ItemDirection direction);
     
     private:
-        /// @brief used in object trajectory
-        float range;
         /// @brief actual ship direction
         ItemDirection direction;
 };
@@ -90,9 +89,8 @@ class PlayerShip : public Object
     public:
         /// @brief default constructor
         /// @param position initial coordinates 
-        /// @param limits move limits on canvas 
         /// @param speed object speed on canvas
-        PlayerShip(sf::Vector2f position,sf::Vector2f limits, float speed);
+        PlayerShip(sf::Vector2f position, float speed);
         /// @brief 
         /// @param state 
         void setShotRequest(bool state);
@@ -106,11 +104,9 @@ class PlayerShip : public Object
         void updatePosition();
         
     private:
-        /// @brief 
+        /// @brief if true player ship will shot
         bool shot_request;
-        /// @brief 
-        sf::Vector2f limits;
-        /// @brief 
+        /// @brief actual point to which ship will be moved
         sf::Vector2f motion_vector;
 };
 

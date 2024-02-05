@@ -8,7 +8,6 @@
  *
  */
 
-#include <iostream>
 #include <cstring>
 #include "canvas.hpp"
 #include "items.hpp"
@@ -49,42 +48,42 @@ constexpr int font_size = 32;
 //game logic config
 constexpr int invader_shot_period_s = 1;
 constexpr int ship_spawn_period_s   = 15;
-
-constexpr int invader_reward       = 10;
-constexpr int invader_ship_reward  = 250;
-constexpr int default_num_of_lives = 3;
-constexpr int max_num_of_lives     = 5;
+constexpr int invader_reward        = 10;
+constexpr int invader_ship_reward   = 250;
+constexpr int default_num_of_lives  = 3;
+constexpr int max_num_of_lives      = 5;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
-    //random generator used for enemy shot events
-    randomizer.seed(ultimate_answer);
-    grid.x = default_x_size;
-    grid.y = default_y_size;
+    //initial game setup
     loadTextures();
-    calculateItemsSpeed(framerate);
-    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
-    window->setActive(true);
-    window->setFramerateLimit(framerate);
-    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),grid,config.player_speed));
-    player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
-    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-    player->setTexture(resource_manager.player);
-
-    invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true,grid.x - default_border_size));
-    invader_ship->setTexture(resource_manager.enemy_ship);
-    invader_ship->setInvisible();
-
     std::memset(&control,0,sizeof(control));
     std::memset(&status,0,sizeof(status));
+    calculateItemsSpeed(framerate);
     setMenuSprites();
-    //initial game setup
+    grid.x                     = default_x_size;
+    grid.y                     = default_y_size;
     status.game_status         = GameStatus::NOT_STARTED;
     config.invader_shot_period = framerate * invader_shot_period_s;
     config.ship_spawn_period   = framerate * ship_spawn_period_s;
     status.player_lives        = default_num_of_lives;
+    // main window setup
+    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
+    window->setActive(true);
+    window->setFramerateLimit(framerate);
+    //player ship setup
+    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),config.player_speed));
+    player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
+    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
+    player->setTexture(resource_manager.player);
+    //invader ship setup
+    invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true));
+    invader_ship->setTexture(resource_manager.enemy_ship);
+    invader_ship->setInvisible();
+    //random generator used for enemy shot events
+    randomizer.seed(ultimate_answer);
 }
 
 void Canvas::calculateItemsSpeed(const unsigned int framerate)
@@ -584,6 +583,11 @@ void Canvas::drawGameOverScreen()
     position.y += default_border_size;
 
     text.setString("Your score : " + std::to_string(status.score));
+    text.setPosition(position);
+    window->draw(text);
+    position.y += default_border_size;
+
+    text.setString("Press Space key to restart the game");
     text.setPosition(position);
     window->draw(text);
 }
