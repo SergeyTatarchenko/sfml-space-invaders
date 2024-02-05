@@ -32,7 +32,7 @@ constexpr float default_border_size = 50.f;
 //max 10 items per one row
 constexpr float grid_row_step = default_x_size/15.f;
 //invaders constants for grid and speed
-constexpr int   invaders_in_row       = 13;
+constexpr int   invaders_in_row       = 10;
 constexpr int   rows_with_invaders    = 6;
 //speed setup (greed per second)
 constexpr float default_invader_speed = 30.f;
@@ -48,6 +48,7 @@ constexpr float bottom_right_y  = default_y_size - default_border_size;
 constexpr int font_size = 32;
 //game logic config
 constexpr int invader_reward       = 10;
+constexpr int invader_ship_reward  = 250;
 constexpr int default_num_of_lives = 3;
 constexpr int max_num_of_lives     = 5;
 
@@ -147,6 +148,11 @@ void Canvas::updateCanvas()
     {
         if(shell.isVisible() == true){window->draw(shell.getSprite());}
     }
+    //update obstacles
+    for (Obstacle& obstacle : obstacles)
+    {
+        if(obstacle.isVisible() == true){window->draw(obstacle.getSprite());}
+    }
     //update player ship
     window->draw(player->getSprite());
 }
@@ -229,21 +235,71 @@ void Canvas::spawnInvaders()
         }
     };
 
-    Invader invader(sf::Vector2f(0.f,0.f),config.invader_speed,true);
-
-    float offset_y = 0.f;
-    for(auto j = 0; j < rows_with_invaders; j++)
+    if(enemies.size() > 0)
     {
-        float offset_x = 0.f;
-        for(auto i = 0; i < invaders_in_row; i++)
+        for (Invader& enemy : enemies)
         {
-            invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
-            invader.setDefaultPosition();
-            set_texture(invader,j);
-            enemies.push_back(invader);
-            offset_x += grid_row_step;
+            enemy.setDefaultPosition();
+            enemy.setVisible();
         }
-        offset_y += grid_row_step;
+    }
+    else
+    {
+        Invader invader(sf::Vector2f(0.f,0.f),config.invader_speed,true);
+        float offset_y = 0.f;
+        for(auto j = 0; j < rows_with_invaders; j++)
+        {
+            float offset_x = 0.f;
+            for(auto i = 0; i < invaders_in_row; i++)
+            {
+                invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
+                invader.setDefaultPosition();
+                set_texture(invader,j);
+                enemies.push_back(invader);
+                offset_x += grid_row_step;
+            }
+            offset_y += grid_row_step;
+        }
+    }
+}
+
+void Canvas::spawnObstacles()
+{
+    // 4 structs with obstacles, 10*5 obstacles in struct , 2 rows, initial start 120, 900
+    constexpr int obstacles_in_row      = 10;
+    constexpr int struct_with_obstacles = 4;
+    constexpr float rows_with_obstacles = 5;
+    constexpr float init_x              = 120.f;
+    constexpr float init_y              = 900.f;
+
+    if(obstacles.size() > 0)
+    {
+        for(Obstacle& obstacle : obstacles)
+        {
+            obstacle.setVisible();
+        }
+    }
+    else
+    {
+        sf::Vector2f init(init_x,init_y);
+        Obstacle obstacle(init);
+        sf::FloatRect rectangle = obstacle.getRectangle();
+        obstacle.setTexture(resource_manager.obstacle);
+        for(auto i = 0; i < rows_with_obstacles; i++)
+        {
+            for(auto j = 0; j < struct_with_obstacles; j++)
+            {
+                for(auto k = 0; k < obstacles_in_row; k++)
+                {
+                    obstacle.setPosition(init);
+                    obstacles.push_back(obstacle);
+                    init.x += rectangle.width;
+                }
+                init.x += 120.f;
+            }
+            init.x  = init_x;
+            init.y -= rectangle.height;
+        } 
     }
 }
 
@@ -346,28 +402,44 @@ void Canvas::checkCollision()
     
     for (Shell& shell : bullets)
     {
-        //collision between enemy shells and player ship
         if((shell.getShellType() == ShellType::ENEMY) && (shell.isVisible() == true))
         {
-
+            //collision between enemy shells and player ship
             if(player->getRectangle().intersects(shell.getRectangle()))
             {
                 handlePlayerHitting();
             }
         }
-        //collision between player shells and invaders
+
         if((shell.getShellType() == ShellType::PLAYER) && (shell.isVisible() == true))
         {
+            //collision between player shells and invaders
             for (Invader& enemy : enemies)
             {
 
                 if( (enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
                 {
-                    //invader hit, make it invisible, make shot invisible
                     shell.setInvisible();
                     enemy.setInvisible();
                     status.score += invader_reward;
                 }    
+
+            }
+        }
+        //collision between shells and player obstacles
+        for (Obstacle& obstacle : obstacles)
+        {
+            if((obstacle.isVisible() == true)&& (shell.getRectangle().intersects(obstacle.getRectangle()) == true))
+            {
+                if(shell.getShellType() == ShellType::ENEMY)
+                {
+                    obstacle.setInvisible();
+                    shell.setInvisible();
+                }
+                else if(shell.getShellType() == ShellType::PLAYER)
+                {
+                    shell.setInvisible();
+                }
             }
         }
     }
@@ -492,6 +564,7 @@ void Canvas::handlePlayerHitting()
 void Canvas::spawnEnemies()
 {
     spawnInvaders();
+    spawnObstacles();
     // enemy ships
     InvaderShip ship(sf::Vector2(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true,grid.x - default_border_size);
     ship.setTexture(resource_manager.enemy_ship);

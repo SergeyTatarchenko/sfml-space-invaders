@@ -86,6 +86,8 @@ struct ResourceManager
     sf::Texture enemy_ship;
     /// @brief texture with shell
     sf::Texture shell;
+    /// @brief texture for obstacles
+    sf::Texture obstacle;
     /// @brief texture with canvas frame
     sf::Texture frame;
     /// @brief font for text on canvas
@@ -100,6 +102,7 @@ class Canvas
         /// @param height canvas initial height in pixels
         /// @param framerate canvas initial framerate
         Canvas(const unsigned int width, unsigned int height, const unsigned int framerate);
+        /// @brief game main function
         void gameTask();
         /// @brief spawn enemies on canvas
         void spawnEnemies();
@@ -111,6 +114,8 @@ class Canvas
         std::vector<InvaderShip> enemyShips;
         /// @brief vector with shell instances
         std::vector<Shell> bullets;
+        /// @brief vector with player obstacles from invaders
+        std::vector<Obstacle> obstacles;
         /// @brief pointer to player ship
         std::unique_ptr<PlayerShip> player;        
         /// @brief pointer to SFML window
@@ -131,6 +136,8 @@ class Canvas
         ResourceManager resource_manager;
         /// @brief spawn invaders on the canvas
         void spawnInvaders();
+        /// @brief spawn player obstacles on the canvas
+        void spawnObstacles();
         /// @brief game event generator
         void generateGameEvent();
         /// @brief textures loading

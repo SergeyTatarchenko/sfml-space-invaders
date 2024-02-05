@@ -13,6 +13,9 @@
 //default shell dimensions
 constexpr int shell_width         = 2;
 constexpr int shell_height        = 10;
+//default obstacle dimensions
+constexpr int obstacle_width      = 10;
+constexpr int obstacle_height     = 10;
 
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {
@@ -28,12 +31,12 @@ void Invader::updatePosition()
     if(isVisible() == true)
     {
         // Invader trajectory:
-        //  60 steps
+        //  450 steps
         // ---------->
         // |         |   
         // |         | 20 steps
         // <---------|
-        const int step_x = 60;
+        const int step_x = 450;
         const int step_y = 20;
         auto speed = getSpeed();
         sf::Vector2 vector(0.f,0.f);
@@ -200,4 +203,5 @@ Obstacle::Obstacle(sf::Vector2f position)
 {
     setPosition(position);
     setVisible();
+    setSpriteRectangle(sf::IntRect(0, 0, obstacle_width, obstacle_height));
 }
