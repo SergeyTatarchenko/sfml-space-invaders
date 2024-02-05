@@ -15,13 +15,9 @@ constexpr unsigned int width     = 500;
 constexpr unsigned int height    = 500;
 constexpr unsigned int framerate = 60;
 
-
 int main()
 {
-    
     Canvas canvas(width,height,framerate);
-    //generate enemies on canvas
-    canvas.spawnEnemies();
     //run game until window closed
     canvas.gameTask();
     return 0;

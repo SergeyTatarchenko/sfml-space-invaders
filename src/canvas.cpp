@@ -49,7 +49,7 @@ constexpr int font_size = 32;
 //game logic config
 constexpr int invader_reward       = 10;
 constexpr int invader_ship_reward  = 250;
-constexpr int default_num_of_lives = 3;
+constexpr int default_num_of_lives = 1;
 constexpr int max_num_of_lives     = 5;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -328,14 +328,28 @@ void Canvas::executeEvent(const sf::Event &event)
                     break;
 
                 case sf::Keyboard::Key::Space:
-                    if(status.game_status == GameStatus::NOT_STARTED)
+                    switch(status.game_status)
                     {
-                        status.game_status = GameStatus::RUNNING;
-                    }
-                    else if(control.player_reload == false)
-                    {
-                        player->setShotRequest(true);
-                        control.player_reload = true;
+                        case GameStatus::NOT_STARTED:
+                            status.player_lives = default_num_of_lives;
+                            spawnInvaders();
+                            spawnObstacles();
+                            status.game_status = GameStatus::RUNNING;    
+                            break;
+                        
+                        case GameStatus::RUNNING:
+                            if(control.player_reload == false)
+                            {
+                                player->setShotRequest(true);
+                                control.player_reload = true;
+                            }
+                            break;
+                        
+                        case GameStatus::GAME_OVER:
+                            status.game_status = GameStatus::NOT_STARTED;
+                            break;
+                        default:
+                            break;
                     }
                     break;
                 default:
@@ -547,12 +561,12 @@ void Canvas::drawGameOverScreen()
 
 void Canvas::handlePlayerHitting()
 {
+    //remove all shells from canvas
+    for (Shell& shell : bullets){shell.setInvisible();}
     if(status.player_lives > 0)
     {
         //decrease player lives counter
         status.player_lives--;
-        //remove all shells from canvas
-        for (Shell& shell : bullets){shell.setInvisible();}
         //move player to default position
         player->setDefaultPosition();
         player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
