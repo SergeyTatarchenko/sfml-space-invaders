@@ -64,12 +64,13 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     std::memset(&status,0,sizeof(status));
     calculateItemsSpeed(framerate);
     setMenuSprites();
-    grid.x                     = default_x_size;
-    grid.y                     = default_y_size;
-    status.game_status         = GameStatus::NOT_STARTED;
-    config.invader_shot_period = framerate * invader_shot_period_s;
-    config.ship_spawn_period   = framerate * ship_spawn_period_s;
-    status.player_lives        = default_num_of_lives;
+    grid.x                      = default_x_size;
+    grid.y                      = default_y_size;
+    status.game_status          = GameStatus::NOT_STARTED;
+    config.invader_shot_period  = framerate * invader_shot_period_s;
+    config.ship_spawn_period    = framerate * ship_spawn_period_s;
+    config.player_reload_period = framerate/4;
+    status.player_lives         = default_num_of_lives;
     // main window setup
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
     window->setActive(true);
@@ -204,6 +205,12 @@ void Canvas::controlItemsPosition()
             control.invader_ship_spawned = false;
         }
     }
+    //spawn invaders again 
+    if(control.invaders_left == 0)
+    {
+        //add logic for delay and music play
+        spawnInvaders();
+    }
 }
 
 void Canvas::generateGameEvent()
@@ -211,10 +218,9 @@ void Canvas::generateGameEvent()
     //every tick for invaders
     control.invader_shot_counter++;
     //only if ship not spawned already
-    if(control.invader_ship_spawned == false)
-    {
-        control.ship_spawn_counter++;
-    }
+    if(control.invader_ship_spawned == false){control.ship_spawn_counter++;}
+    //only if player shot, reload delay
+    if(control.player_reload == true){control.player_reload_counter++;}
     //random enemy shot every second
     if((control.invader_shot_counter % config.invader_shot_period) == 0)
     {
@@ -226,6 +232,7 @@ void Canvas::generateGameEvent()
         }
         
     }
+    //generate invader ship spawn event
     if(((control.ship_spawn_counter % config.ship_spawn_period) == 0) &&
        (control.invader_ship_spawned == false))
     {
@@ -239,6 +246,12 @@ void Canvas::generateGameEvent()
         player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
         objectShot(rectangle,ShellType::PLAYER);
+    }
+    //player reload handle
+    if(((control.player_reload_counter % config.player_reload_period) == 0) &&
+       (control.player_reload == true))
+    {
+        control.player_reload = false;
     }
 }
 
@@ -272,6 +285,7 @@ void Canvas::spawnInvaders()
         for (Invader& enemy : enemies)
         {
             enemy.revertPosition();
+            enemy.setVisible();
         }
     }
     else
@@ -292,6 +306,7 @@ void Canvas::spawnInvaders()
             offset_y += grid_row_step;
         }
     }
+    control.invaders_left = enemies.size();
 }
 
 void Canvas::spawnObstacles()
@@ -405,10 +420,6 @@ void Canvas::executeEvent(const sf::Event &event)
                     control.right_pressed = false;
                     break;
 
-                case sf::Keyboard::Key::Space:
-                    if(control.player_reload == true){control.player_reload = false;}
-                    break;
-                
                 default:
                     break;
             }
@@ -472,6 +483,7 @@ void Canvas::checkCollision()
                 {
                     shell.setInvisible();
                     enemy.setInvisible();
+                    control.invaders_left--;
                     status.score += invader_reward;
                 }    
 

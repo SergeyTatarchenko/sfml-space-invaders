@@ -26,9 +26,16 @@ enum class GameStatus
 
 struct GameControl
 {
+    /// @brief counter for invader shot event, event will be generated when this counter be equal to invader_shot_period
     uint32_t invader_shot_counter;
+    /// @brief counter for invader ship spawn event, event will be generated when this counter be equal to ship_spawn_period
     uint32_t ship_spawn_counter;
-    bool invader_ship_spawned;
+    /// @brief counter for player reload event, event will be generated when this counter be equal to player_reload_period
+    uint32_t player_reload_counter;
+    /// @brief actual number of invader on th canvas
+    uint32_t invaders_left;
+    /// @brief flag that invader ship is on the canvas now
+    bool     invader_ship_spawned;
     /// @brief label for player reload logic, when shot is not performed
     bool     player_reload;
     /// @brief left key is pressed
@@ -40,9 +47,11 @@ struct GameControl
 struct GameConfig
 {
     /// @brief shot period, compared with event_counter from GameControl
-    unsigned int invader_shot_period;
+    uint32_t invader_shot_period;
     /// @brief ship spawn period, compared with event_counter from GameControl
-    unsigned int ship_spawn_period;
+    uint32_t ship_spawn_period;
+    /// @brief player reload period in framerate ticks
+    uint32_t player_reload_period;
     /// @brief actual player speed, adjusted with actual framerate
     float player_speed;
     /// @brief actual invader ship speed, adjusted with actual framerate
