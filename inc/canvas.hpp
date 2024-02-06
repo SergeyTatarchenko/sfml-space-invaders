@@ -26,8 +26,9 @@ enum class GameStatus
 
 struct GameControl
 {
-    /// @brief frame tick counter
-    uint32_t event_counter;
+    uint32_t invader_shot_counter;
+    uint32_t ship_spawn_counter;
+    bool invader_ship_spawned;
     /// @brief label for player reload logic, when shot is not performed
     bool     player_reload;
     /// @brief left key is pressed

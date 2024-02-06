@@ -37,6 +37,8 @@ class Invader : public Object
         Invader(sf::Vector2f position, float speed, bool visible);
         /// @brief change object position according to internal trajectory function
         void updatePosition();
+        /// @brief setup default position and set position_counter to 0
+        void revertPosition();
     
     private:
         /// @brief actual position counter, used in updatePosition

@@ -8,6 +8,7 @@
  *
  */
 
+#include <iostream>
 #include <cstring>
 #include "canvas.hpp"
 #include "items.hpp"
@@ -140,7 +141,6 @@ void Canvas::updateCanvas()
     drawPlayerLives();
     //update menu frames
     for(Object & frame : menu_sprites.frames){window->draw(frame.getSprite());}
-    
     //update enemies 
     for (Invader& enemy : enemies)
     {
@@ -201,15 +201,22 @@ void Canvas::controlItemsPosition()
         )
         {
             invader_ship->setInvisible();
+            control.invader_ship_spawned = false;
         }
     }
 }
 
 void Canvas::generateGameEvent()
 {
-    control.event_counter++;
+    //every tick for invaders
+    control.invader_shot_counter++;
+    //only if ship not spawned already
+    if(control.invader_ship_spawned == false)
+    {
+        control.ship_spawn_counter++;
+    }
     //random enemy shot every second
-    if((control.event_counter % config.invader_shot_period) == 0)
+    if((control.invader_shot_counter % config.invader_shot_period) == 0)
     {
         auto index = randomizer() % enemies.size();
         if(enemies[index].isVisible() == true)
@@ -219,9 +226,12 @@ void Canvas::generateGameEvent()
         }
         
     }
-    if((control.event_counter % config.ship_spawn_period) == 0)
+    if(((control.ship_spawn_counter % config.ship_spawn_period) == 0) &&
+       (control.invader_ship_spawned == false))
     {
         spawnInvaderShip();
+        control.ship_spawn_counter = 0;
+        control.invader_ship_spawned = true;
     }
     //player shot handle 
     if(player->getShotRequest() == true)
@@ -261,8 +271,7 @@ void Canvas::spawnInvaders()
     {
         for (Invader& enemy : enemies)
         {
-            enemy.setDefaultPosition();
-            enemy.setVisible();
+            enemy.revertPosition();
         }
     }
     else
@@ -459,13 +468,21 @@ void Canvas::checkCollision()
             for (Invader& enemy : enemies)
             {
 
-                if( (enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
+                if((enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
                 {
                     shell.setInvisible();
                     enemy.setInvisible();
                     status.score += invader_reward;
                 }    
 
+            }
+            //collision between player shells and invader ship
+            if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
+            {
+                shell.setInvisible();
+                invader_ship->setInvisible();
+                status.score += invader_ship_reward;
+                control.invader_ship_spawned = false;
             }
         }
         //collision between shells and player obstacles
@@ -603,7 +620,7 @@ void Canvas::handlePlayerHitting()
         //move player to default position
         player->setDefaultPosition();
         player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-        control.event_counter = 0;
+        control.invader_shot_counter = 0;
     }
     else{status.game_status = GameStatus::GAME_OVER;}
 }

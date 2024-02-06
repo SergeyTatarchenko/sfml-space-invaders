@@ -8,7 +8,7 @@
  *
  */
 #include "items.hpp"
- #include <cmath>
+#include <cmath>
 
 //default shell dimensions
 constexpr int shell_width         = 2;
@@ -56,6 +56,12 @@ void Invader::updatePosition()
     }
 }
 
+void Invader::revertPosition()
+{
+    setDefaultPosition();
+    position_counter = 0;
+}
+
 InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible)
 {
     //start with move right
@@ -75,8 +81,8 @@ void InvaderShip::updatePosition()
     // <--------------|
     if(isVisible() == true)
     {
-        sf::Vector2 vector( getSpeed(),0.f);
-       
+        sf::Vector2 vector(getSpeed(),0.f);
+
         switch(this->direction)
         {
             case ItemDirection::LEFT:
@@ -84,7 +90,7 @@ void InvaderShip::updatePosition()
                 break;
             default:
                 break;
-        }    
+        }
         move(vector); 
     }       
 }
