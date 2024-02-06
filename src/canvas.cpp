@@ -665,6 +665,13 @@ void Canvas::loadTextures()
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
+    //shoot sound
+    /*
+    if(!resource_manager.shot_sound.loadFromFile("rc/sounds/shoot.waw"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    */
     resource_manager.player.setSmooth(true);
     resource_manager.enemy_ship.setSmooth(true);
     resource_manager.enemy_type_1.setSmooth(true);

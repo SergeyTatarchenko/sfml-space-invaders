@@ -15,6 +15,7 @@
 #include <array>
 #include <memory>
 #include <random>
+#include <SFML/Audio.hpp>
 #include "items.hpp"
 
 enum class GameStatus
@@ -104,6 +105,8 @@ struct ResourceManager
     sf::Texture frame;
     /// @brief font for text on canvas
     sf::Font game_font;
+    // sfml audio is not compiled with Cmake
+    //sf::SoundBuffer shot_sound;
 };
 
 class Canvas
