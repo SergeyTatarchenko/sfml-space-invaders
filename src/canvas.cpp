@@ -59,7 +59,8 @@ constexpr int max_num_of_lives      = 5;
 Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
 {
     //initial game setup
-    loadTextures();
+    loadResources();
+    setupSounds();
     std::memset(&control,0,sizeof(control));
     std::memset(&status,0,sizeof(status));
     calculateItemsSpeed(framerate);
@@ -245,6 +246,7 @@ void Canvas::generateGameEvent()
     {
         player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
+        sound_manager.shoot_sound.play();
         objectShot(rectangle,ShellType::PLAYER);
     }
     //player reload handle
@@ -637,7 +639,7 @@ void Canvas::handlePlayerHitting()
     else{status.game_status = GameStatus::GAME_OVER;}
 }
 
-void Canvas::loadTextures()
+void Canvas::loadResources()
 {
     //textures
     if(!resource_manager.enemy_type_1.loadFromFile("rc/textures/green.png"))
@@ -666,15 +668,19 @@ void Canvas::loadTextures()
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //shoot sound
-    /*
-    if(!resource_manager.shot_sound.loadFromFile("rc/sounds/shoot.waw"))
+    if(!resource_manager.shoot_sound_buffer.loadFromFile("rc/sounds/shoot.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    */
+    
     resource_manager.player.setSmooth(true);
     resource_manager.enemy_ship.setSmooth(true);
     resource_manager.enemy_type_1.setSmooth(true);
     resource_manager.enemy_type_2.setSmooth(true);
     resource_manager.enemy_type_3.setSmooth(true);
+}
+
+void Canvas::setupSounds()
+{
+    sound_manager.shoot_sound.setBuffer(resource_manager.shoot_sound_buffer);
 }

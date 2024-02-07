@@ -105,8 +105,13 @@ struct ResourceManager
     sf::Texture frame;
     /// @brief font for text on canvas
     sf::Font game_font;
-    // sfml audio is not compiled with Cmake
-    //sf::SoundBuffer shot_sound;
+    // shot sound buffer
+    sf::SoundBuffer shoot_sound_buffer;
+};
+
+struct SoundManager
+{
+    sf::Sound shoot_sound;
 };
 
 class Canvas
@@ -145,8 +150,10 @@ class Canvas
         GameMenuSprites menu_sprites;
         /// @brief random number generator instance
         std:: minstd_rand randomizer;
-        /// @brief struct with textures for game objects 
+        /// @brief struct with resources for game objects 
         ResourceManager resource_manager;
+        /// @brief struct with sounds to play
+        SoundManager sound_manager;
         /// @brief spawn invaders on the canvas
         void spawnInvaders();
         /// @brief spawn player obstacles on the canvas
@@ -156,7 +163,9 @@ class Canvas
         /// @brief game event generator
         void generateGameEvent();
         /// @brief textures loading
-        void loadTextures();
+        void loadResources();
+        /// @brief loading sounds
+        void setupSounds();
         /// @brief calculate items speed based on actual framerate
         /// @param framerate expected framerate
         void calculateItemsSpeed(const unsigned int framerate);

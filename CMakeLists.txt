@@ -22,7 +22,7 @@ set(PROGRAM_SOURCES
 
 add_executable(${PROJECT_NAME} ${PROGRAM_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics)
+target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics sfml-audio)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 target_include_directories(${PROJECT_NAME} PRIVATE inc)
 target_compile_options(${PROJECT_NAME} PRIVATE
