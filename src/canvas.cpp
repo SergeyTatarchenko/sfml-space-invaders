@@ -202,6 +202,7 @@ void Canvas::controlItemsPosition()
         (position.y > grid.y) || (position.y < default_start_y)
         )
         {
+            sound_manager.ship_sound.stop();
             invader_ship->setInvisible();
             control.invader_ship_spawned = false;
         }
@@ -355,6 +356,7 @@ void Canvas::spawnInvaderShip()
 {
     invader_ship->setDefaultPosition();
     invader_ship->setVisible();
+    sound_manager.ship_sound.play();
 }
 
 void Canvas::executeEvent(const sf::Event &event)
@@ -485,6 +487,7 @@ void Canvas::checkCollision()
                 {
                     shell.setInvisible();
                     enemy.setInvisible();
+                    sound_manager.invader_killed_sound.play();
                     control.invaders_left--;
                     status.score += invader_reward;
                 }    
@@ -493,6 +496,7 @@ void Canvas::checkCollision()
             //collision between player shells and invader ship
             if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
             {
+                sound_manager.ship_sound.stop();
                 shell.setInvisible();
                 invader_ship->setInvisible();
                 status.score += invader_ship_reward;
@@ -629,6 +633,7 @@ void Canvas::handlePlayerHitting()
     for (Shell& shell : bullets){shell.setInvisible();}
     if(status.player_lives > 0)
     {
+        sound_manager.player_killed_sound.play();
         //decrease player lives counter
         status.player_lives--;
         //move player to default position
@@ -672,7 +677,21 @@ void Canvas::loadResources()
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    
+    //invader killed sound
+    if(!resource_manager.invader_killed_sound_buffer.loadFromFile("rc/sounds/invaderkilled.wav"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    //player killed sound
+    if(!resource_manager.player_killed_sound_buffer.loadFromFile("rc/sounds/explosion.wav"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
+    //invader ship sound
+    if(!resource_manager.ship_sound_buffer.loadFromFile("rc/sounds/ufo_highpitch.wav"))
+    {
+        throw std::runtime_error(std::string("Could not load resource files!"));
+    }
     resource_manager.player.setSmooth(true);
     resource_manager.enemy_ship.setSmooth(true);
     resource_manager.enemy_type_1.setSmooth(true);
@@ -683,4 +702,9 @@ void Canvas::loadResources()
 void Canvas::setupSounds()
 {
     sound_manager.shoot_sound.setBuffer(resource_manager.shoot_sound_buffer);
+    sound_manager.invader_killed_sound.setBuffer(resource_manager.invader_killed_sound_buffer);
+    sound_manager.player_killed_sound.setBuffer(resource_manager.player_killed_sound_buffer);
+    sound_manager.ship_sound.setBuffer(resource_manager.ship_sound_buffer);
+    //shall be played during the time when ship is present on the canvas
+    sound_manager.ship_sound.setLoop(true);
 }

@@ -107,11 +107,20 @@ struct ResourceManager
     sf::Font game_font;
     // shot sound buffer
     sf::SoundBuffer shoot_sound_buffer;
+    // invader killed sound buffer
+    sf::SoundBuffer invader_killed_sound_buffer;
+    // player killed sound buffer
+    sf::SoundBuffer player_killed_sound_buffer;
+    // ship sound buffer
+    sf::SoundBuffer ship_sound_buffer;
 };
 
 struct SoundManager
 {
     sf::Sound shoot_sound;
+    sf::Sound invader_killed_sound;
+    sf::Sound player_killed_sound;
+    sf::Sound ship_sound;
 };
 
 class Canvas
