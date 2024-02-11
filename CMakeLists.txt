@@ -15,12 +15,16 @@ FetchContent_MakeAvailable(SFML)
 
 set(PROGRAM_SOURCES
         src/main.cpp
-        src/object.cpp
         src/canvas.cpp
         src/items.cpp
 )
+set(PROGRAM_HEADERS
+        inc/canvas.hpp
+        inc/object.hpp
+        inc/items.hpp
+)
 
-add_executable(${PROJECT_NAME} ${PROGRAM_SOURCES})
+add_executable(${PROJECT_NAME} ${PROGRAM_SOURCES} ${PROGRAM_HEADERS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics sfml-audio)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
