@@ -22,8 +22,7 @@ Invader::Invader(sf::Vector2f position, float speed, bool visible)
     position_counter = 0;
     setPosition(position);
     setSpeed(speed);
-    if(visible == true){setVisible();}
-    else{setInvisible();}    
+    setVisibility(visible);    
 }
 
 void Invader::updatePosition()
@@ -69,8 +68,7 @@ InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible)
     setInitPosition(position);
     setPosition(position);
     setSpeed(speed);
-    if(visible == true){setVisible();}
-    else{setInvisible();}
+    setVisibility(visible);
 }
 
 void InvaderShip::updatePosition()
@@ -105,7 +103,7 @@ Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)
     this->shell_type = shell_type;
     setPosition(position);
     setSpeed(speed);
-    setVisible();
+    setVisibility(true);
     setSpriteRectangle(sf::IntRect(0, 0, shell_width, shell_height));
 }
 
@@ -144,7 +142,7 @@ PlayerShip::PlayerShip(sf::Vector2f position, float speed)
 {
     shot_request = false;
     setPosition(position);
-    setVisible();
+    setVisibility(true);
     setSpeed(speed);
 }
 
@@ -205,6 +203,6 @@ void PlayerShip::updatePosition()
 Obstacle::Obstacle(sf::Vector2f position)
 {
     setPosition(position);
-    setVisible();
+    setVisibility(true);
     setSpriteRectangle(sf::IntRect(0, 0, obstacle_width, obstacle_height));
 }

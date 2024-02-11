@@ -84,7 +84,7 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     //invader ship setup
     invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true));
     invader_ship->setTexture(resource_manager.enemy_ship);
-    invader_ship->setInvisible();
+    invader_ship->setVisibility(true);
     //random generator used for enemy shot events
     randomizer.seed(ultimate_answer);
 }
@@ -190,7 +190,7 @@ void Canvas::controlItemsPosition()
             (position.y > grid.y) || (position.y < default_start_y)
             )
             {
-                shell.setInvisible();
+                shell.setVisibility(false);
             }
         }
     }
@@ -203,7 +203,7 @@ void Canvas::controlItemsPosition()
         )
         {
             sound_manager.ship_sound.stop();
-            invader_ship->setInvisible();
+            invader_ship->setVisibility(false);
             control.invader_ship_spawned = false;
         }
     }
@@ -288,7 +288,7 @@ void Canvas::spawnInvaders()
         for (Invader& enemy : enemies)
         {
             enemy.revertPosition();
-            enemy.setVisible();
+            enemy.setVisibility(true);
         }
     }
     else
@@ -325,7 +325,7 @@ void Canvas::spawnObstacles()
     {
         for(Obstacle& obstacle : obstacles)
         {
-            obstacle.setVisible();
+            obstacle.setVisibility(true);
         }
     }
     else
@@ -355,7 +355,7 @@ void Canvas::spawnObstacles()
 void Canvas::spawnInvaderShip()
 {
     invader_ship->setDefaultPosition();
-    invader_ship->setVisible();
+    invader_ship->setVisibility(true);
     sound_manager.ship_sound.play();
 }
 
@@ -451,7 +451,7 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
         //use existed one
         it->setShellType(shell_type);
         it->setPosition(position);
-        it->setVisible();
+        it->setVisibility(true);
     }
     else
     {
@@ -485,8 +485,8 @@ void Canvas::checkCollision()
 
                 if((enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
                 {
-                    shell.setInvisible();
-                    enemy.setInvisible();
+                    shell.setVisibility(false);
+                    enemy.setVisibility(false);
                     sound_manager.invader_killed_sound.play();
                     control.invaders_left--;
                     status.score += invader_reward;
@@ -497,8 +497,8 @@ void Canvas::checkCollision()
             if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
             {
                 sound_manager.ship_sound.stop();
-                shell.setInvisible();
-                invader_ship->setInvisible();
+                shell.setVisibility(false);
+                invader_ship->setVisibility(false);
                 status.score += invader_ship_reward;
                 control.invader_ship_spawned = false;
             }
@@ -510,12 +510,12 @@ void Canvas::checkCollision()
             {
                 if(shell.getShellType() == ShellType::ENEMY)
                 {
-                    obstacle.setInvisible();
-                    shell.setInvisible();
+                    obstacle.setVisibility(false);
+                    shell.setVisibility(false);
                 }
                 else if(shell.getShellType() == ShellType::PLAYER)
                 {
-                    shell.setInvisible();
+                    shell.setVisibility(false);
                 }
             }
         }
@@ -630,7 +630,7 @@ void Canvas::drawGameOverScreen()
 void Canvas::handlePlayerHitting()
 {
     //remove all shells from canvas
-    for (Shell& shell : bullets){shell.setInvisible();}
+    for (Shell& shell : bullets){shell.setVisibility(false);}
     if(status.player_lives > 0)
     {
         sound_manager.player_killed_sound.play();

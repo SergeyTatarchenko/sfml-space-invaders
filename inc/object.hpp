@@ -4,7 +4,6 @@
  * @brief 
  *
  * @author Siarhei Tatarchanka
- * Contact: zlojdigger@gmail.com
  *
  */
 
@@ -16,47 +15,47 @@
 class Object
 {
     public:
-        void setInitPosition(const sf::Vector2f& position);
-        /// @brief  setup object position
-        /// @param x X coordinate of the new position
-        /// @param y Y coordinate of the new position
-        void setPosition(const sf::Vector2f& position);
+        /// @brief setup initial object position
+        /// @param position vector with coordinates
+        void setInitPosition(const sf::Vector2f& position){def_position = position;}
+        /// @brief setup object position
+        /// @param position vector with coordinates
+        void setPosition(const sf::Vector2f& position){sprite.setPosition(position);}
         /// @brief set default position from def_x and def_y
-        void setDefaultPosition();
+        void setDefaultPosition(){sprite.setPosition(def_position);}
         /// @brief get default object position
         /// @return vector with default position
-        sf::Vector2f getDefaultPosition();
+        sf::Vector2f getDefaultPosition() const {return def_position;}
         /// @brief request for object speed
         /// @return actual object speed
-        float getSpeed();
+        float getSpeed() const {return speed;}
         /// @brief setup object speed
-        /// @param speed 
-        void setSpeed(const float speed);
+        /// @param speed new speed
+        void setSpeed(const float speed){this->speed = speed;}
         /// @brief load and setup texture for this object
         /// @param texture reference to texture
-        void setTexture(const sf::Texture &texture);
+        void setTexture(const sf::Texture& texture){sprite.setTexture(texture);}
         /// @brief setup sprite rectangle
         /// @param rectangle reference to expected rectangle
-        void setSpriteRectangle(const sf::IntRect& rectangle);
+        void setSpriteRectangle(const sf::IntRect& rectangle){sprite.setTextureRect(rectangle);}
         /// @brief change sprite color
         /// @param color new color and transparency level
-        void setSpriteColor(const sf::Color &color);
-        /// @brief set object as visible on the canvas 
-        void setVisible();
-        /// @brief set object as invisible on the canvas
-        void setInvisible();
+        void setSpriteColor(const sf::Color& color){sprite.setColor(color);}
+        /// @brief set object visibility
+        /// @param visibility visible or not
+        void setVisibility(const bool visibility){visible = visibility;}
         /// @brief check if object visible or not
         /// @return true if visible false if not
-        bool isVisible();
+        bool isVisible() const {return visible;}
         /// @brief move object sprite
         /// @param vector the vector along which we will move
-        void move(const sf::Vector2f vector);
+        void move(const sf::Vector2f vector){sprite.move(vector);}
         /// @brief get actual object outline
-        /// @return const reference to actual outline
-        sf::FloatRect getRectangle();
+        /// @return actual  object outline
+        sf::FloatRect getRectangle() const {return sprite.getGlobalBounds();}
         /// @brief get reference to object sprite
         /// @return reference to sf::Sprite type class member
-        sf::Sprite& getSprite();
+        sf::Sprite getSprite() const {return sprite;}
 
     private:
         /// @brief object sprite with texture
