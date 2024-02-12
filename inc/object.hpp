@@ -23,12 +23,6 @@ class Object
         void setPosition(const sf::Vector2f& position){sprite.setPosition(position);}
         /// @brief set default position from def_x and def_y
         void setDefaultPosition(){sprite.setPosition(def_position);}
-        /// @brief get default object position
-        /// @return vector with default position
-        sf::Vector2f getDefaultPosition() const {return def_position;}
-        /// @brief request for object speed
-        /// @return actual object speed
-        float getSpeed() const {return speed;}
         /// @brief setup object speed
         /// @param speed new speed
         void setSpeed(const float speed){this->speed = speed;}
@@ -44,18 +38,24 @@ class Object
         /// @brief set object visibility
         /// @param visibility visible or not
         void setVisibility(const bool visibility){visible = visibility;}
-        /// @brief check if object visible or not
-        /// @return true if visible false if not
-        bool isVisible() const {return visible;}
-        /// @brief move object sprite
-        /// @param vector the vector along which we will move
-        void move(const sf::Vector2f vector){sprite.move(vector);}
+        /// @brief get default object position
+        /// @return vector with default position
+        sf::Vector2f getDefaultPosition() const {return def_position;}
+        /// @brief request for object speed
+        /// @return actual object speed
+        float getSpeed() const {return speed;}
         /// @brief get actual object outline
         /// @return actual  object outline
         sf::FloatRect getRectangle() const {return sprite.getGlobalBounds();}
         /// @brief get reference to object sprite
         /// @return reference to sf::Sprite type class member
         sf::Sprite getSprite() const {return sprite;}
+        /// @brief check if object visible or not
+        /// @return true if visible false if not
+        bool isVisible() const {return visible;}
+        /// @brief move object sprite
+        /// @param vector the vector along which we will move
+        void move(const sf::Vector2f vector){sprite.move(vector);}
 
     private:
         /// @brief object sprite with texture

@@ -230,7 +230,7 @@ void Canvas::generateGameEvent()
         if(enemies[index].isVisible() == true)
         {
             const auto rectangle = enemies[index].getRectangle();
-            objectShot(rectangle,ShellType::ENEMY);
+            objectShot(rectangle,ShellType::Enemy);
         }
         
     }
@@ -248,7 +248,7 @@ void Canvas::generateGameEvent()
         player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
         sound_manager.shoot_sound.play();
-        objectShot(rectangle,ShellType::PLAYER);
+        objectShot(rectangle,ShellType::Player);
     }
     //player reload handle
     if(((control.player_reload_counter % config.player_reload_period) == 0) &&
@@ -468,7 +468,7 @@ void Canvas::checkCollision()
     
     for (Shell& shell : bullets)
     {
-        if((shell.getShellType() == ShellType::ENEMY) && (shell.isVisible() == true))
+        if((shell.getShellType() == ShellType::Enemy) && (shell.isVisible() == true))
         {
             //collision between enemy shells and player ship
             if(player->getRectangle().intersects(shell.getRectangle()))
@@ -477,7 +477,7 @@ void Canvas::checkCollision()
             }
         }
 
-        if((shell.getShellType() == ShellType::PLAYER) && (shell.isVisible() == true))
+        if((shell.getShellType() == ShellType::Player) && (shell.isVisible() == true))
         {
             //collision between player shells and invaders
             for (Invader& enemy : enemies)
@@ -508,12 +508,12 @@ void Canvas::checkCollision()
         {
             if((obstacle.isVisible() == true)&& (shell.getRectangle().intersects(obstacle.getRectangle()) == true))
             {
-                if(shell.getShellType() == ShellType::ENEMY)
+                if(shell.getShellType() == ShellType::Enemy)
                 {
                     obstacle.setVisibility(false);
                     shell.setVisibility(false);
                 }
-                else if(shell.getShellType() == ShellType::PLAYER)
+                else if(shell.getShellType() == ShellType::Player)
                 {
                     shell.setVisibility(false);
                 }

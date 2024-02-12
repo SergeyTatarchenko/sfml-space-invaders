@@ -4,7 +4,6 @@
  * @brief 
  *
  * @author Siarhei Tatarchanka
- * Contact: zlojdigger@gmail.com
  *
  */
 #include "items.hpp"
@@ -19,7 +18,6 @@ constexpr int obstacle_height     = 10;
 
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {
-    position_counter = 0;
     setPosition(position);
     setSpeed(speed);
     setVisibility(visible);    
@@ -27,7 +25,7 @@ Invader::Invader(sf::Vector2f position, float speed, bool visible)
 
 void Invader::updatePosition()
 {
-    if(isVisible() == true)
+    if(isVisible())
     {
         // Invader trajectory:
         //  450 steps
@@ -37,34 +35,27 @@ void Invader::updatePosition()
         // <---------|
         const int step_x = 450;
         const int step_y = 20;
+
         auto speed = getSpeed();
         sf::Vector2 vector(0.f,0.f);
-
         if(position_counter < step_x)                     {vector.x = speed;}
         else if (position_counter < (step_x + step_y))    {vector.y = speed;}
         else if (position_counter < (2*step_x + step_y))  {vector.x = (-1.f)*speed;}
         else if (position_counter < (2*step_x + 2*step_y)){vector.y = (-1.f)*speed;}
-        
-        position_counter++;
+        ++position_counter;
         move(vector);
-        if(position_counter == (2*step_x + 2*step_y))
-        {
-            position_counter = 0;
-            setDefaultPosition();    
-        }
+        if(position_counter == (2*step_x + 2*step_y)){revertPosition();}
     }
 }
 
 void Invader::revertPosition()
 {
-    setDefaultPosition();
     position_counter = 0;
+    setDefaultPosition();
 }
 
-InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible)
+InvaderShip::InvaderShip(sf::Vector2f position, float speed, bool visible) : direction(ItemDirection::Right)
 {
-    //start with move right
-    direction   = ItemDirection::RIGHT;
     setInitPosition(position);
     setPosition(position);
     setSpeed(speed);
@@ -77,105 +68,56 @@ void InvaderShip::updatePosition()
     // --------------->
     //        or
     // <--------------|
-    if(isVisible() == true)
+    if(isVisible())
     {
         sf::Vector2 vector(getSpeed(),0.f);
-
-        switch(this->direction)
-        {
-            case ItemDirection::LEFT:
-                vector.x *= (-1.f);
-                break;
-            default:
-                break;
-        }
+        if(direction == ItemDirection::Left){vector.x *= (-1.f);}
         move(vector); 
     }       
 }
 
-void InvaderShip::setDirection(const ItemDirection direction)
+Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type) : shell_type(shell_type)
 {
-    this->direction = direction;
-}
-
-Shell::Shell(sf::Vector2f position, float speed, ShellType shell_type)
-{
-    this->shell_type = shell_type;
     setPosition(position);
     setSpeed(speed);
     setVisibility(true);
     setSpriteRectangle(sf::IntRect(0, 0, shell_width, shell_height));
 }
 
-ShellType Shell::getShellType()
-{
-    return shell_type;
-}
-
-void Shell::setShellType(const ShellType new_type)
-{
-    shell_type = new_type;
-}
-
 void Shell::updatePosition()
 {
     // shell trajectory:
     // straight up or down from the creation point
-    if(isVisible() == true)
+    if(isVisible())
     {
-        auto speed        = getSpeed();
-        sf::Vector2 vector(0.f,speed);
-
-        switch(shell_type)
-        {
-            case ShellType::PLAYER:
-                vector.y *= (-1.f);
-                break;
-            default:
-                break;
-        }    
+        sf::Vector2 vector(0.f,getSpeed());
+        if(shell_type == ShellType::Player){vector.y *= (-1.f);}    
         move(vector); 
     }     
 }
 
-PlayerShip::PlayerShip(sf::Vector2f position, float speed)
+PlayerShip::PlayerShip(sf::Vector2f position, float speed): shot_request(false)
 {
-    shot_request = false;
     setPosition(position);
     setVisibility(true);
     setSpeed(speed);
 }
 
-void PlayerShip::setShotRequest(bool state)
-{
-    shot_request = state;
-}
-
-bool PlayerShip::getShotRequest()
-{
-    return shot_request;
-}
-
-void PlayerShip::setMotionVector(const sf::Vector2f &vector)
-{
-    motion_vector = vector;
-}
-
 void PlayerShip::updatePosition()
 {
-    auto calc_distance = []( sf::Vector2f &vector_a,  sf::Vector2f &vector_b)
+    auto calc_distance = []( sf::Vector2f& vector_a,  sf::Vector2f& vector_b)
     {
         // R = sqrt((B.x - A.x)^2 + (B.y - A.y)^2)
         return sqrtf(powf((vector_b.x - vector_a.x),2.f) + powf((vector_b.y - vector_a.y),2.f));
     };
 
-    auto get_cathetuses = [](sf::Vector2f &vector_a,  sf::Vector2f &vector_b)
+    auto get_cathetuses = [](sf::Vector2f& vector_a,  sf::Vector2f& vector_b)
     {
         // return cathetuses of right-angled triangle created from vector_a and vector_b
         return sf::Vector2f((vector_b.x - vector_a.x),(vector_b.y - vector_a.y));
     };
 
-    if(isVisible() == true)
+    if(isVisible())
     {
         sf::Vector2 vector(0.f,0.f);
         auto position = getRectangle().getPosition();   
