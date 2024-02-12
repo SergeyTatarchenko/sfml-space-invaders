@@ -9,9 +9,7 @@
  */
 
 #include <iostream>
-#include <cstring>
 #include "canvas.hpp"
-#include "items.hpp"
 ////////////////////////GAME SETTINGS AND CONSTANTS/////////////////////////////
 
 constexpr int ultimate_answer = 42;//init for random generator 
@@ -61,13 +59,11 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     //initial game setup
     loadResources();
     setupSounds();
-    std::memset(&control,0,sizeof(control));
-    std::memset(&status,0,sizeof(status));
     calculateItemsSpeed(framerate);
     setMenuSprites();
     grid.x                      = default_x_size;
     grid.y                      = default_y_size;
-    status.game_status          = GameStatus::NOT_STARTED;
+    status.game_status          = GameStatus::NotStarted;
     config.invader_shot_period  = framerate * invader_shot_period_s;
     config.ship_spawn_period    = framerate * ship_spawn_period_s;
     config.player_reload_period = framerate/4;
@@ -80,10 +76,10 @@ Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int
     player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),config.player_speed));
     player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-    player->setTexture(resource_manager.player);
+    player->setTexture(resources.player);
     //invader ship setup
     invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true));
-    invader_ship->setTexture(resource_manager.enemy_ship);
+    invader_ship->setTexture(resources.enemy_ship);
     invader_ship->setVisibility(true);
     //random generator used for enemy shot events
     randomizer.seed(ultimate_answer);
@@ -98,7 +94,7 @@ void Canvas::calculateItemsSpeed(const unsigned int framerate)
         config.player_speed     = default_player_speed/framerate;
         config.shell_speed      = default_shell_speed/framerate;
     }
-    else{std::memset(&config,0,sizeof(config));}
+    else{config = GameConfig();}
 }
 
 void Canvas::gameTask()
@@ -112,11 +108,11 @@ void Canvas::gameTask()
         window->clear(sf::Color::Black);
         switch(status.game_status)
         {
-            case GameStatus::NOT_STARTED:
+            case GameStatus::NotStarted:
                 drawWelcomeWindow();
                 break;
             
-            case GameStatus::RUNNING:
+            case GameStatus::Running:
                 updateCanvas();
                 generateGameEvent();
                 controlItemsPosition();
@@ -124,7 +120,7 @@ void Canvas::gameTask()
                 updateItemsPosition();
                 break;
             
-            case GameStatus::GAME_OVER:
+            case GameStatus::GameOver:
                 drawGameOverScreen();
                 break;
                 
@@ -202,7 +198,7 @@ void Canvas::controlItemsPosition()
         (position.y > grid.y) || (position.y < default_start_y)
         )
         {
-            sound_manager.ship_sound.stop();
+            resources.sounds.ship_sound.stop();
             invader_ship->setVisibility(false);
             control.invader_ship_spawned = false;
         }
@@ -247,7 +243,7 @@ void Canvas::generateGameEvent()
     {
         player->setShotRequest(false);
         const auto rectangle = this->player->getRectangle();
-        sound_manager.shoot_sound.play();
+        resources.sounds.shoot_sound.play();
         objectShot(rectangle,ShellType::Player);
     }
     //player reload handle
@@ -269,16 +265,16 @@ void Canvas::spawnInvaders()
         {
             case 1:
             case 4:
-                invader.setTexture(resource_manager.enemy_type_2);
+                invader.setTexture(resources.enemy_type_2);
                 break;
             case 2:
             case 5:
-                invader.setTexture(resource_manager.enemy_type_3);
+                invader.setTexture(resources.enemy_type_3);
                 break;
             case 0:
             case 3:
             default:
-                invader.setTexture(resource_manager.enemy_type_1);
+                invader.setTexture(resources.enemy_type_1);
                 break;
         }
     };
@@ -333,7 +329,7 @@ void Canvas::spawnObstacles()
         sf::Vector2f init(init_x,init_y);
         Obstacle obstacle(init);
         sf::FloatRect rectangle = obstacle.getRectangle();
-        obstacle.setTexture(resource_manager.obstacle);
+        obstacle.setTexture(resources.obstacle);
         for(auto i = 0; i < rows_with_obstacles; i++)
         {
             for(auto j = 0; j < struct_with_obstacles; j++)
@@ -356,7 +352,7 @@ void Canvas::spawnInvaderShip()
 {
     invader_ship->setDefaultPosition();
     invader_ship->setVisibility(true);
-    sound_manager.ship_sound.play();
+    resources.sounds.ship_sound.play();
 }
 
 void Canvas::executeEvent(const sf::Event &event)
@@ -386,14 +382,14 @@ void Canvas::executeEvent(const sf::Event &event)
                 case sf::Keyboard::Key::Space:
                     switch(status.game_status)
                     {
-                        case GameStatus::NOT_STARTED:
+                        case GameStatus::NotStarted:
                             status.player_lives = default_num_of_lives;
                             spawnInvaders();
                             spawnObstacles();
-                            status.game_status = GameStatus::RUNNING;    
+                            status.game_status = GameStatus::Running;    
                             break;
                         
-                        case GameStatus::RUNNING:
+                        case GameStatus::Running:
                             if(control.player_reload == false)
                             {
                                 player->setShotRequest(true);
@@ -401,8 +397,8 @@ void Canvas::executeEvent(const sf::Event &event)
                             }
                             break;
                         
-                        case GameStatus::GAME_OVER:
-                            status.game_status = GameStatus::NOT_STARTED;
+                        case GameStatus::GameOver:
+                            status.game_status = GameStatus::NotStarted;
                             break;
                         default:
                             break;
@@ -457,7 +453,7 @@ void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_ty
     {
         //create new one
         Shell shell(position,config.shell_speed,shell_type);
-        shell.setTexture(resource_manager.shell);
+        shell.setTexture(resources.shell);
         shell.setSpriteColor(sf::Color(40, 236, 250));
         bullets.push_back(shell);
     }
@@ -487,16 +483,15 @@ void Canvas::checkCollision()
                 {
                     shell.setVisibility(false);
                     enemy.setVisibility(false);
-                    sound_manager.invader_killed_sound.play();
+                    resources.sounds.invader_killed_sound.play();
                     control.invaders_left--;
                     status.score += invader_reward;
                 }    
-
             }
             //collision between player shells and invader ship
             if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
             {
-                sound_manager.ship_sound.stop();
+                resources.sounds.ship_sound.stop();
                 shell.setVisibility(false);
                 invader_ship->setVisibility(false);
                 status.score += invader_ship_reward;
@@ -525,35 +520,35 @@ void Canvas::checkCollision()
 void Canvas::setMenuSprites()
 {
     //setup game score item
-    menu_sprites.score.setFont(resource_manager.game_font);
+    menu_sprites.score.setFont(resources.game_font);
     menu_sprites.score.setCharacterSize(font_size);
     menu_sprites.score.setPosition(sf::Vector2f(static_cast<float>(frame_length),static_cast<float>(frame_width)));
     //player lives indicator
-    menu_sprites.live.setTexture(resource_manager.player);
+    menu_sprites.live.setTexture(resources.player);
     //setup canvas frames
     //up 1
     menu_sprites.frames[0].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
-    menu_sprites.frames[0].setTexture(resource_manager.frame);
+    menu_sprites.frames[0].setTexture(resources.frame);
     menu_sprites.frames[0].setSpriteColor(sf::Color::White);
     menu_sprites.frames[0].setPosition(sf::Vector2f(default_start_x,default_start_y));
     //right
     menu_sprites.frames[1].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
-    menu_sprites.frames[1].setTexture(resource_manager.frame);
+    menu_sprites.frames[1].setTexture(resources.frame);
     menu_sprites.frames[1].setSpriteColor(sf::Color::White);
     menu_sprites.frames[1].setPosition(sf::Vector2f(default_x_size - static_cast<float>(frame_width),default_start_y));
     //up 2
     menu_sprites.frames[2].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
-    menu_sprites.frames[2].setTexture(resource_manager.frame);
+    menu_sprites.frames[2].setTexture(resources.frame);
     menu_sprites.frames[2].setSpriteColor(sf::Color::White);
     menu_sprites.frames[2].setPosition(sf::Vector2f(default_start_x,static_cast<float>(frame_length)));
     //left
     menu_sprites.frames[3].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
-    menu_sprites.frames[3].setTexture(resource_manager.frame);
+    menu_sprites.frames[3].setTexture(resources.frame);
     menu_sprites.frames[3].setSpriteColor(sf::Color::White);
     menu_sprites.frames[3].setPosition(sf::Vector2f(default_start_x,default_start_y));
     //down
     menu_sprites.frames[4].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
-    menu_sprites.frames[4].setTexture(resource_manager.frame);
+    menu_sprites.frames[4].setTexture(resources.frame);
     menu_sprites.frames[4].setSpriteColor(sf::Color::White);
     menu_sprites.frames[4].setPosition(sf::Vector2f(default_start_x,default_y_size - static_cast<float>(frame_width)));
 }
@@ -577,7 +572,7 @@ void Canvas::drawWelcomeWindow()
 {
     sf::Text welcome_text;
     sf::Vector2f position(default_border_size,default_border_size);
-    welcome_text.setFont(resource_manager.game_font);
+    welcome_text.setFont(resources.game_font);
     welcome_text.setCharacterSize(font_size);
 
     welcome_text.setString(title + " version : " + version);
@@ -609,7 +604,7 @@ void Canvas::drawGameOverScreen()
 {
     sf::Text text;
     sf::Vector2f position(default_border_size,default_border_size);
-    text.setFont(resource_manager.game_font);
+    text.setFont(resources.game_font);
     text.setCharacterSize(font_size);
 
     text.setString("GAME OVER");
@@ -633,7 +628,7 @@ void Canvas::handlePlayerHitting()
     for (Shell& shell : bullets){shell.setVisibility(false);}
     if(status.player_lives > 0)
     {
-        sound_manager.player_killed_sound.play();
+        resources.sounds.player_killed_sound.play();
         //decrease player lives counter
         status.player_lives--;
         //move player to default position
@@ -641,70 +636,70 @@ void Canvas::handlePlayerHitting()
         player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
         control.invader_shot_counter = 0;
     }
-    else{status.game_status = GameStatus::GAME_OVER;}
+    else{status.game_status = GameStatus::GameOver;}
 }
 
 void Canvas::loadResources()
 {
     //textures
-    if(!resource_manager.enemy_type_1.loadFromFile("rc/textures/green.png"))
+    if(!resources.enemy_type_1.loadFromFile("rc/textures/green.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_type_2.loadFromFile("rc/textures/red.png"))
+    if(!resources.enemy_type_2.loadFromFile("rc/textures/red.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_type_3.loadFromFile("rc/textures/yellow.png"))
+    if(!resources.enemy_type_3.loadFromFile("rc/textures/yellow.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.player.loadFromFile("rc/textures/player.png"))
+    if(!resources.player.loadFromFile("rc/textures/player.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    if(!resource_manager.enemy_ship.loadFromFile("rc/textures/extra.png"))
+    if(!resources.enemy_ship.loadFromFile("rc/textures/extra.png"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //font
-    if(!resource_manager.game_font.loadFromFile("rc/fonts/SpaceMission.ttf"))
+    if(!resources.game_font.loadFromFile("rc/fonts/SpaceMission.ttf"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //shoot sound
-    if(!resource_manager.shoot_sound_buffer.loadFromFile("rc/sounds/shoot.wav"))
+    if(!resources.sounds.shoot_sound_buffer.loadFromFile("rc/sounds/shoot.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //invader killed sound
-    if(!resource_manager.invader_killed_sound_buffer.loadFromFile("rc/sounds/invaderkilled.wav"))
+    if(!resources.sounds.invader_killed_sound_buffer.loadFromFile("rc/sounds/invaderkilled.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //player killed sound
-    if(!resource_manager.player_killed_sound_buffer.loadFromFile("rc/sounds/explosion.wav"))
+    if(!resources.sounds.player_killed_sound_buffer.loadFromFile("rc/sounds/explosion.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //invader ship sound
-    if(!resource_manager.ship_sound_buffer.loadFromFile("rc/sounds/ufo_highpitch.wav"))
+    if(!resources.sounds.ship_sound_buffer.loadFromFile("rc/sounds/ufo_highpitch.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
-    resource_manager.player.setSmooth(true);
-    resource_manager.enemy_ship.setSmooth(true);
-    resource_manager.enemy_type_1.setSmooth(true);
-    resource_manager.enemy_type_2.setSmooth(true);
-    resource_manager.enemy_type_3.setSmooth(true);
+    resources.player.setSmooth(true);
+    resources.enemy_ship.setSmooth(true);
+    resources.enemy_type_1.setSmooth(true);
+    resources.enemy_type_2.setSmooth(true);
+    resources.enemy_type_3.setSmooth(true);
 }
 
 void Canvas::setupSounds()
 {
-    sound_manager.shoot_sound.setBuffer(resource_manager.shoot_sound_buffer);
-    sound_manager.invader_killed_sound.setBuffer(resource_manager.invader_killed_sound_buffer);
-    sound_manager.player_killed_sound.setBuffer(resource_manager.player_killed_sound_buffer);
-    sound_manager.ship_sound.setBuffer(resource_manager.ship_sound_buffer);
+    resources.sounds.shoot_sound.setBuffer(resources.sounds.shoot_sound_buffer);
+    resources.sounds.invader_killed_sound.setBuffer(resources.sounds.invader_killed_sound_buffer);
+    resources.sounds.player_killed_sound.setBuffer(resources.sounds.player_killed_sound_buffer);
+    resources.sounds.ship_sound.setBuffer(resources.sounds.ship_sound_buffer);
     //shall be played during the time when ship is present on the canvas
-    sound_manager.ship_sound.setLoop(true);
+    resources.sounds.ship_sound.setLoop(true);
 }

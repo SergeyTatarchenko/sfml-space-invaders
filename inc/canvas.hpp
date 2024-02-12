@@ -11,6 +11,7 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
+#include <cstdint>
 #include <vector>
 #include <array>
 #include <memory>
@@ -20,39 +21,39 @@
 
 enum class GameStatus
 {
-    NOT_STARTED,
-    RUNNING,
-    GAME_OVER
+    NotStarted,
+    Running,
+    GameOver
 };
 
 struct GameControl
 {
     /// @brief counter for invader shot event, event will be generated when this counter be equal to invader_shot_period
-    uint32_t invader_shot_counter;
+    std::uint32_t invader_shot_counter = 0;
     /// @brief counter for invader ship spawn event, event will be generated when this counter be equal to ship_spawn_period
-    uint32_t ship_spawn_counter;
+    std::uint32_t ship_spawn_counter = 0;
     /// @brief counter for player reload event, event will be generated when this counter be equal to player_reload_period
-    uint32_t player_reload_counter;
+    std::uint32_t player_reload_counter = 0;
     /// @brief actual number of invader on th canvas
-    uint32_t invaders_left;
+    std::uint32_t invaders_left = 0;
     /// @brief flag that invader ship is on the canvas now
-    bool     invader_ship_spawned;
+    bool invader_ship_spawned = false;
     /// @brief label for player reload logic, when shot is not performed
-    bool     player_reload;
+    bool player_reload = false;
     /// @brief left key is pressed
-    bool     left_pressed;
+    bool left_pressed = false;
     /// @brief right key is pressed
-    bool     right_pressed;
+    bool right_pressed = false;
 };
 
 struct GameConfig
 {
     /// @brief shot period, compared with event_counter from GameControl
-    uint32_t invader_shot_period;
+    std::uint32_t invader_shot_period = 0;
     /// @brief ship spawn period, compared with event_counter from GameControl
-    uint32_t ship_spawn_period;
+    std::uint32_t ship_spawn_period = 0;
     /// @brief player reload period in framerate ticks
-    uint32_t player_reload_period;
+    std::uint32_t player_reload_period = 0;
     /// @brief actual player speed, adjusted with actual framerate
     float player_speed;
     /// @brief actual invader ship speed, adjusted with actual framerate
@@ -85,7 +86,27 @@ struct GameElements
     GameStatus game_status;
 };
 
-struct ResourceManager
+struct GameSounds
+{
+    // shot sound buffer
+    sf::SoundBuffer shoot_sound_buffer;
+    // shot sound interface
+    sf::Sound shoot_sound;
+    // invader killed sound buffer
+    sf::SoundBuffer invader_killed_sound_buffer;
+    // invader killed sound interface
+    sf::Sound invader_killed_sound;
+    // player killed sound buffer
+    sf::SoundBuffer player_killed_sound_buffer;
+    // player killed sound interface
+    sf::Sound player_killed_sound;
+    // ship sound buffer
+    sf::SoundBuffer ship_sound_buffer;
+    // ship sound interface
+    sf::Sound ship_sound;
+};
+
+struct GameResources
 {
     /// @brief texture with player image
     sf::Texture player;
@@ -105,22 +126,8 @@ struct ResourceManager
     sf::Texture frame;
     /// @brief font for text on canvas
     sf::Font game_font;
-    // shot sound buffer
-    sf::SoundBuffer shoot_sound_buffer;
-    // invader killed sound buffer
-    sf::SoundBuffer invader_killed_sound_buffer;
-    // player killed sound buffer
-    sf::SoundBuffer player_killed_sound_buffer;
-    // ship sound buffer
-    sf::SoundBuffer ship_sound_buffer;
-};
-
-struct SoundManager
-{
-    sf::Sound shoot_sound;
-    sf::Sound invader_killed_sound;
-    sf::Sound player_killed_sound;
-    sf::Sound ship_sound;
+    /// @brief struct with game sounds resources
+    GameSounds sounds;
 };
 
 class Canvas
@@ -149,6 +156,8 @@ class Canvas
         std::unique_ptr<InvaderShip> invader_ship;
         /// @brief actual view grid
         sf::Vector2f grid; 
+        /// @brief struct with resources for game objects 
+        GameResources resources;
         /// @brief struct with game control items
         GameControl control;
         /// @brief struct with game configuration
@@ -159,10 +168,6 @@ class Canvas
         GameMenuSprites menu_sprites;
         /// @brief random number generator instance
         std:: minstd_rand randomizer;
-        /// @brief struct with resources for game objects 
-        ResourceManager resource_manager;
-        /// @brief struct with sounds to play
-        SoundManager sound_manager;
         /// @brief spawn invaders on the canvas
         void spawnInvaders();
         /// @brief spawn player obstacles on the canvas
