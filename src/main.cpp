@@ -15,7 +15,6 @@ constexpr unsigned int framerate = 60;
 int main()
 {
     Canvas canvas(framerate);
-    //run game until window closed
-    canvas.gameTask();
+    canvas.runEventLoop();
     return 0;
 }

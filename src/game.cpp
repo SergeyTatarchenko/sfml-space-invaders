@@ -27,6 +27,9 @@ Game::Game(unsigned int framerate)
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     //random generator used for enemy shot events
     randomizer.seed(std::time(nullptr));
+    Shell shell(sf::Vector2f(0.f,0.f),config.shell_speed,ShellType::Enemy);
+    shell.setVisibility(false);
+    bullets.push_back(shell);
 }
 
 void Game::gameLoop()
@@ -394,9 +397,11 @@ void Game::objectShot(const sf::FloatRect &rectangle, const ShellType shell_type
     else
     {
         //create new one
+        const sf::Texture* shell_texture = bullets[0].getSprite().getTexture();
+        const sf::Color shell_color = bullets[0].getSprite().getColor();
         Shell shell(position,config.shell_speed,shell_type);
-        //shell.setTexture(resources.shell);
-        //shell.setSpriteColor(sf::Color(40, 236, 250));
+        shell.setTexture(*shell_texture);
+        shell.setSpriteColor(shell_color);
         bullets.push_back(shell);
     }
 }

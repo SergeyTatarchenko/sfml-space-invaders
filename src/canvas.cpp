@@ -23,6 +23,8 @@ constexpr unsigned int canvas_height    = 500;
 Canvas::Canvas(const unsigned int framerate):grid(sf::Vector2f(si::default_x_size,si::default_y_size)),game(si::Game(framerate))
 {
     window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(canvas_width, canvas_height), title));
+    sf::View view(sf::FloatRect(si::default_start_x, si::default_start_y, si::default_x_size, si::default_y_size));
+    window->setView(view);
     window->setActive(true);
     window->setFramerateLimit(framerate);
     loadResources();
@@ -31,14 +33,12 @@ Canvas::Canvas(const unsigned int framerate):grid(sf::Vector2f(si::default_x_siz
     setupSounds();
 }
 
-void Canvas::gameTask()
+void Canvas::runEventLoop()
 {
     sf::Event event;
     while (window->isOpen())
     {
         while(window->pollEvent(event)){game.executeEvent(event);}
-        sf::View view(sf::FloatRect(si::default_start_x, si::default_start_y, si::default_x_size, si::default_y_size));
-        window->setView(view);
         window->clear(sf::Color::Black);
         switch(game.status)
         {
@@ -288,7 +288,9 @@ void Canvas::setupTextures()
     for(Obstacle& obstacle : game.obstacles){obstacle.setTexture(resources.obstacle);}
     game.player->setTexture(resources.player);
     game.invader_ship->setTexture(resources.enemy_ship);
-    
+    //set texture and color for first shell in array
+    game.bullets[0].setTexture(resources.shell);
+    game.bullets[0].setSpriteColor(sf::Color(40, 236, 250));
     //special texture setup for invaders (use different textures for different rows)
     int row_counter = 0;
     int num_of_invaders = game.enemies.size();

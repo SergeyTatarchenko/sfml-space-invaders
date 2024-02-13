@@ -65,7 +65,7 @@ class Canvas
         /// @param framerate canvas initial framerate
         Canvas( const unsigned int framerate);
         /// @brief game main function
-        void gameTask();
+        void runEventLoop();
 
     private:     
         /// @brief pointer to SFML window

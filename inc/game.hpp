@@ -19,14 +19,11 @@
 
 namespace si
 {
-
     ////////////////////////GAME SETTINGS AND CONSTANTS/////////////////////////////
     constexpr int   frame_width        = 10;
     constexpr int   frame_length       = 50;
     constexpr float default_start_x    = 0.f;
     constexpr float default_start_y    = 0.f;
-    constexpr int   invaders_in_row    = 10;
-    constexpr int   rows_with_invaders = 6; 
     constexpr float default_x_size     = 1000.f;
     constexpr float default_y_size     = 1000.f;
     //border size around game field
@@ -44,6 +41,8 @@ namespace si
     constexpr float bottom_left_y   = default_y_size - default_border_size;
     constexpr float bottom_right_y  = default_y_size - default_border_size;
     //game logic config
+    constexpr int   invaders_in_row     = 10;
+    constexpr int   rows_with_invaders  = 6; 
     constexpr int invader_shot_period_s = 1;
     constexpr int ship_spawn_period_s   = 15;
     constexpr int invader_reward        = 10;
