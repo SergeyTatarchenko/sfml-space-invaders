@@ -69,9 +69,7 @@ class Canvas
 
     private:     
         /// @brief pointer to SFML window
-        std::unique_ptr<sf::RenderWindow> window;
-        /// @brief actual view grid
-        sf::Vector2f grid; 
+        sf::RenderWindow window;
         /// @brief struct with resources for game objects 
         GameResources resources;
         /// @brief struct with other canvas items, like score and player lives 

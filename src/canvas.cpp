@@ -20,13 +20,14 @@ constexpr          int font_size        = 32;
 constexpr unsigned int canvas_width     = 500;
 constexpr unsigned int canvas_height    = 500;
 
-Canvas::Canvas(const unsigned int framerate):grid(sf::Vector2f(si::default_x_size,si::default_y_size)),game(si::Game(framerate))
+Canvas::Canvas(const unsigned int framerate):
+                window(sf::VideoMode(canvas_width, canvas_height), title),
+                game(si::Game(framerate))
 {
-    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(canvas_width, canvas_height), title));
     sf::View view(sf::FloatRect(si::default_start_x, si::default_start_y, si::default_x_size, si::default_y_size));
-    window->setView(view);
-    window->setActive(true);
-    window->setFramerateLimit(framerate);
+    window.setView(view);
+    window.setActive(true);
+    window.setFramerateLimit(framerate);
     loadResources();
     setMenuSprites();
     setupTextures();
@@ -36,10 +37,10 @@ Canvas::Canvas(const unsigned int framerate):grid(sf::Vector2f(si::default_x_siz
 void Canvas::runEventLoop()
 {
     sf::Event event;
-    while (window->isOpen())
+    while (window.isOpen())
     {
-        while(window->pollEvent(event)){game.executeEvent(event);}
-        window->clear(sf::Color::Black);
+        while(window.pollEvent(event)){game.executeEvent(event);}
+        window.clear(sf::Color::Black);
         switch(game.status)
         {
             case si::GameStatus::NotStarted:
@@ -57,40 +58,40 @@ void Canvas::runEventLoop()
                 break;
             case si::GameStatus::Closed:    
             default:
-                window->close();
+                window.close();
                 break;
         }
-        window->display();
+        window.display();
     }
 }
 
 void Canvas::updateCanvas()
 {
     //update score indicator
-    window->draw(menu_sprites.score);
+    window.draw(menu_sprites.score);
     //update lives indicator
     drawPlayerLives();
     //update menu frames
-    for(Object & frame : menu_sprites.frames){window->draw(frame.getSprite());}
+    for(Object & frame : menu_sprites.frames){window.draw(frame.getSprite());}
     //update enemies 
     for (Invader& enemy : game.enemies)
     {
-        if(enemy.isVisible()){window->draw(enemy.getSprite());}
+        if(enemy.isVisible()){window.draw(enemy.getSprite());}
     }    
     //update bullets
     for (Shell& shell : game.bullets)
     {
-        if(shell.isVisible()){window->draw(shell.getSprite());}
+        if(shell.isVisible()){window.draw(shell.getSprite());}
     }
     //update obstacles
     for (Obstacle& obstacle : game.obstacles)
     {
-        if(obstacle.isVisible()){window->draw(obstacle.getSprite());}
+        if(obstacle.isVisible()){window.draw(obstacle.getSprite());}
     }
     //update enemy ship
-    if(game.invader_ship->isVisible()){window->draw(game.invader_ship->getSprite());}
+    if(game.invader_ship->isVisible()){window.draw(game.invader_ship->getSprite());}
     //update player ship
-    window->draw(game.player->getSprite());
+    window.draw(game.player->getSprite());
 }
 
 void Canvas::setMenuSprites()
@@ -139,7 +140,7 @@ void Canvas::drawPlayerLives()
     for(auto i = 0; i < game.elements.player_lives; i++)
     {
         menu_sprites.live.setPosition(sf::Vector2f(offset,static_cast<float>(si::frame_width)));
-        window->draw(menu_sprites.live);
+        window.draw(menu_sprites.live);
         offset -= static_cast<float>(texture_size.width) + border;
     }
 }
@@ -153,27 +154,27 @@ void Canvas::drawWelcomeWindow()
 
     welcome_text.setString(title + " version : " + version);
     welcome_text.setPosition(position);
-    window->draw(welcome_text);
+    window.draw(welcome_text);
     position.y += si::default_border_size;
 
     welcome_text.setString("Controls:");
     welcome_text.setPosition(position);
-    window->draw(welcome_text);
+    window.draw(welcome_text);
     position.y += si::default_border_size;
 
     welcome_text.setString("Shot - Space Bar");
     welcome_text.setPosition(position);
-    window->draw(welcome_text);
+    window.draw(welcome_text);
     position.y += si::default_border_size;
 
     welcome_text.setString("Movement - arrows");
     welcome_text.setPosition(position);
-    window->draw(welcome_text);
+    window.draw(welcome_text);
     position.y += si::default_border_size;
     
     welcome_text.setString("Press Space key to start...");
     welcome_text.setPosition(position);
-    window->draw(welcome_text);
+    window.draw(welcome_text);
 }
 
 void Canvas::drawGameOverScreen()
@@ -185,17 +186,17 @@ void Canvas::drawGameOverScreen()
 
     text.setString("GAME OVER");
     text.setPosition(position);
-    window->draw(text);
+    window.draw(text);
     position.y += si::default_border_size;
 
     text.setString("Your score : " + std::to_string(game.elements.score));
     text.setPosition(position);
-    window->draw(text);
+    window.draw(text);
     position.y += si::default_border_size;
 
     text.setString("Press Space key to restart the game");
     text.setPosition(position);
-    window->draw(text);
+    window.draw(text);
 }
 
 void Canvas::loadResources()
