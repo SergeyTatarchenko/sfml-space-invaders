@@ -164,7 +164,7 @@ void Game::generateGameEvent()
         }
     }
     //generate invader ship spawn event
-    if(((control.ship_spawn_counter % config.ship_spawn_period) == 0) && control.invader_ship_spawned)
+    if(((control.ship_spawn_counter % config.ship_spawn_period) == 0) && !control.invader_ship_spawned)
     {
         spawnInvaderShip();
         control.ship_spawn_counter = 0;
