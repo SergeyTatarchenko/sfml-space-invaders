@@ -11,9 +11,14 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <vector>
 #include <array>
 #include "game.hpp"
+
+//canvas settings
+constexpr          int num_of_frames    = 5;
+constexpr          int font_size        = 32;
+constexpr unsigned int canvas_width     = 500;
+constexpr unsigned int canvas_height    = 500;
 
 struct GameMenuSprites 
 {
@@ -24,7 +29,7 @@ struct GameMenuSprites
     /// @brief sprite with player live
     sf::Sprite live;
     /// @brief array with canvas frames
-    std::array<Object,5> frames; 
+    std::array<Object,num_of_frames> frames; 
 };
 
 struct GameResources
@@ -82,10 +87,10 @@ class Canvas
         void setupSounds();
         /// @brief setup items textures
         void setupTextures();
+        /// @brief setup all non moving canvas items 
+        void setupMenu();
         /// @brief render items on canvas according to their actual state
         void updateCanvas();
-        /// @brief setup all non moving canvas items 
-        void setMenuSprites();
         /// @brief draw actual number of player lives
         void drawPlayerLives();
         /// @brief draw window with welcome and press and key screen

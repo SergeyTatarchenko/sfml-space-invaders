@@ -44,7 +44,7 @@ namespace si
     constexpr int   invaders_in_row     = 10;
     constexpr int   rows_with_invaders  = 6; 
     constexpr int invader_shot_period_s = 1;
-    constexpr int ship_spawn_period_s   = 5;
+    constexpr int ship_spawn_period_s   = 15;
     constexpr int invader_reward        = 10;
     constexpr int invader_ship_reward   = 250;
     constexpr int default_num_of_lives  = 3;
@@ -100,9 +100,9 @@ namespace si
     struct GameElements
     {
         /// @brief actual game score
-        int score;
+        int score = 0;
         /// @brief actual number of player lives
-        int player_lives;
+        int player_lives = default_num_of_lives;
     };
 
     struct GameSounds

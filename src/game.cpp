@@ -17,7 +17,6 @@ Game::Game(unsigned int framerate)
     config.invader_shot_period  = framerate * invader_shot_period_s;
     config.ship_spawn_period    = framerate * ship_spawn_period_s;
     config.player_reload_period = framerate/4;
-    elements.player_lives       = default_num_of_lives;
     status                      = GameStatus::NotStarted;
     setupInvaders();
     setupObstacles();
@@ -27,6 +26,7 @@ Game::Game(unsigned int framerate)
     player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
     //random generator used for enemy shot events
     randomizer.seed(std::time(nullptr));
+    //create one invisible shell in shell vector to give possibility to setup texture and sprite
     Shell shell(sf::Vector2f(0.f,0.f),config.shell_speed,ShellType::Enemy);
     shell.setVisibility(false);
     bullets.push_back(shell);

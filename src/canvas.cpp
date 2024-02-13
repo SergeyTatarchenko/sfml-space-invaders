@@ -15,10 +15,25 @@
 static const sf::String title = "Space Invaders";
 //game version
 static const sf::String version = "0.01";
-//window settings
-constexpr          int font_size        = 32;
-constexpr unsigned int canvas_width     = 500;
-constexpr unsigned int canvas_height    = 500;
+
+//object rectangles for the menu frames
+std::array<sf::IntRect,num_of_frames> frame_rectangles = 
+{
+    sf::IntRect(0,0,si::default_x_size,si::frame_width),
+    sf::IntRect(0,0,si::frame_width,si::default_y_size),
+    sf::IntRect(0,0,si::default_x_size,si::frame_width),
+    sf::IntRect(0,0,si::frame_width,si::default_y_size),
+    sf::IntRect(0,0,si::default_x_size,si::frame_width)
+};
+//object positions for the menu frames
+std::array<sf::Vector2f,num_of_frames> frame_positions = 
+{
+    sf::Vector2f(si::default_start_x,si::default_start_y),
+    sf::Vector2f(si::default_x_size - static_cast<float>(si::frame_width),si::default_start_y),
+    sf::Vector2f(si::default_start_x,static_cast<float>(si::frame_length)),
+    sf::Vector2f(si::default_start_x,si::default_start_y),
+    sf::Vector2f(si::default_start_x,si::default_y_size - static_cast<float>(si::frame_width))
+};
 
 Canvas::Canvas(const unsigned int framerate):
                 window(sf::VideoMode(canvas_width, canvas_height), title),
@@ -29,7 +44,7 @@ Canvas::Canvas(const unsigned int framerate):
     window.setActive(true);
     window.setFramerateLimit(framerate);
     loadResources();
-    setMenuSprites();
+    setupMenu();
     setupTextures();
     setupSounds();
 }
@@ -94,7 +109,7 @@ void Canvas::updateCanvas()
     window.draw(game.player->getSprite());
 }
 
-void Canvas::setMenuSprites()
+void Canvas::setupMenu()
 {
     //setup game score item
     menu_sprites.score.setFont(resources.game_font);
@@ -103,31 +118,14 @@ void Canvas::setMenuSprites()
     //player lives indicator
     menu_sprites.live.setTexture(resources.player);
     //setup canvas frames
-    //up 1
-    menu_sprites.frames[0].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
-    menu_sprites.frames[0].setTexture(resources.frame);
-    menu_sprites.frames[0].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[0].setPosition(sf::Vector2f(si::default_start_x,si::default_start_y));
-    //right
-    menu_sprites.frames[1].setSpriteRectangle(sf::IntRect(0,0,si::frame_width,si::default_y_size));
-    menu_sprites.frames[1].setTexture(resources.frame);
-    menu_sprites.frames[1].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[1].setPosition(sf::Vector2f(si::default_x_size - static_cast<float>(si::frame_width),si::default_start_y));
-    //up 2
-    menu_sprites.frames[2].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
-    menu_sprites.frames[2].setTexture(resources.frame);
-    menu_sprites.frames[2].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[2].setPosition(sf::Vector2f(si::default_start_x,static_cast<float>(si::frame_length)));
-    //left
-    menu_sprites.frames[3].setSpriteRectangle(sf::IntRect(0,0,si::frame_width,si::default_y_size));
-    menu_sprites.frames[3].setTexture(resources.frame);
-    menu_sprites.frames[3].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[3].setPosition(sf::Vector2f(si::default_start_x,si::default_start_y));
-    //down
-    menu_sprites.frames[4].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
-    menu_sprites.frames[4].setTexture(resources.frame);
-    menu_sprites.frames[4].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[4].setPosition(sf::Vector2f(si::default_start_x,si::default_y_size - static_cast<float>(si::frame_width)));
+    for (Object& frame: menu_sprites.frames)
+    {
+        auto i = &frame - &menu_sprites.frames[0];
+        frame.setSpriteRectangle(frame_rectangles[i]);
+        frame.setTexture(resources.frame);
+        frame.setSpriteColor(sf::Color::White);
+        frame.setPosition(frame_positions[i]);
+    }
 }
 
 void Canvas::drawPlayerLives()
