@@ -17,11 +17,13 @@ set(PROGRAM_SOURCES
         src/main.cpp
         src/canvas.cpp
         src/items.cpp
+        src/game.cpp
 )
 set(PROGRAM_HEADERS
         inc/canvas.hpp
         inc/object.hpp
         inc/items.hpp
+        inc/game.hpp
 )
 
 add_executable(${PROJECT_NAME} ${PROGRAM_SOURCES} ${PROGRAM_HEADERS})

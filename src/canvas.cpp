@@ -10,91 +10,25 @@
 
 #include <iostream>
 #include "canvas.hpp"
-////////////////////////GAME SETTINGS AND CONSTANTS/////////////////////////////
 
-constexpr int ultimate_answer = 42;//init for random generator 
 //window title
 static const sf::String title = "Space Invaders";
 //game version
 static const sf::String version = "0.01";
-//sizes for main view coordinates
-constexpr float default_start_x = 0.f;
-constexpr float default_start_y = 0.f;
-constexpr float default_x_size  = 1000.f;
-constexpr float default_y_size  = 1000.f;
-//sizes for white frames around the canvas
-constexpr int   frame_width     = 10;
-constexpr int   frame_length    = 50;
-//border size around game field
-constexpr float default_border_size = 50.f;
-//max 10 items per one row
-constexpr float grid_row_step = default_x_size/15.f;
-//invaders constants for grid and speed
-constexpr int   invaders_in_row       = 10;
-constexpr int   rows_with_invaders    = 6;
-//speed setup (greed per second)
-constexpr float default_invader_speed = 30.f;
-constexpr float default_ship_speed    = 100.f;
-constexpr float default_shell_speed   = 200.f;
-constexpr float default_player_speed  = 400.f;
-//limits for player movement
-constexpr float bottom_left_x   = static_cast<float>(frame_width);
-constexpr float bottom_right_x  = default_x_size - static_cast<float>(frame_width);
-constexpr float bottom_left_y   = default_y_size - default_border_size;
-constexpr float bottom_right_y  = default_y_size - default_border_size;
-//setup for game score text size
-constexpr int font_size = 32;
-//game logic config
-constexpr int invader_shot_period_s = 1;
-constexpr int ship_spawn_period_s   = 15;
-constexpr int invader_reward        = 10;
-constexpr int invader_ship_reward   = 250;
-constexpr int default_num_of_lives  = 3;
-constexpr int max_num_of_lives      = 5;
+//window settings
+constexpr          int font_size        = 32;
+constexpr unsigned int canvas_width     = 500;
+constexpr unsigned int canvas_height    = 500;
 
-////////////////////////////////////////////////////////////////////////////////
-
-Canvas::Canvas(const unsigned int width, unsigned int height, const unsigned int framerate)
+Canvas::Canvas(const unsigned int framerate):grid(sf::Vector2f(si::default_x_size,si::default_y_size)),game(si::Game(framerate))
 {
-    //initial game setup
-    loadResources();
-    setupSounds();
-    calculateItemsSpeed(framerate);
-    setMenuSprites();
-    grid.x                      = default_x_size;
-    grid.y                      = default_y_size;
-    status.game_status          = GameStatus::NotStarted;
-    config.invader_shot_period  = framerate * invader_shot_period_s;
-    config.ship_spawn_period    = framerate * ship_spawn_period_s;
-    config.player_reload_period = framerate/4;
-    status.player_lives         = default_num_of_lives;
-    // main window setup
-    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(width, height), title));
+    window = std::unique_ptr<sf::RenderWindow>(new sf::RenderWindow(sf::VideoMode(canvas_width, canvas_height), title));
     window->setActive(true);
     window->setFramerateLimit(framerate);
-    //player ship setup
-    player = std::unique_ptr<PlayerShip>(new PlayerShip(sf::Vector2f(bottom_left_x,bottom_left_y),config.player_speed));
-    player->setInitPosition(sf::Vector2f(bottom_left_x,bottom_left_y));
-    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-    player->setTexture(resources.player);
-    //invader ship setup
-    invader_ship = std::unique_ptr<InvaderShip>(new InvaderShip(sf::Vector2f(default_border_size,default_border_size*2.f),config.enemy_ship_speed,true));
-    invader_ship->setTexture(resources.enemy_ship);
-    invader_ship->setVisibility(true);
-    //random generator used for enemy shot events
-    randomizer.seed(ultimate_answer);
-}
-
-void Canvas::calculateItemsSpeed(const unsigned int framerate)
-{
-    if(framerate != 0)
-    {
-        config.enemy_ship_speed = default_ship_speed/framerate;
-        config.invader_speed    = default_invader_speed/framerate;
-        config.player_speed     = default_player_speed/framerate;
-        config.shell_speed      = default_shell_speed/framerate;
-    }
-    else{config = GameConfig();}
+    loadResources();
+    setMenuSprites();
+    setupTextures();
+    setupSounds();
 }
 
 void Canvas::gameTask()
@@ -102,29 +36,28 @@ void Canvas::gameTask()
     sf::Event event;
     while (window->isOpen())
     {
-        while(window->pollEvent(event)){executeEvent(event);}
-        sf::View view(sf::FloatRect(default_start_x, default_start_y, default_x_size, default_y_size));
+        while(window->pollEvent(event)){game.executeEvent(event);}
+        sf::View view(sf::FloatRect(si::default_start_x, si::default_start_y, si::default_x_size, si::default_y_size));
         window->setView(view);
         window->clear(sf::Color::Black);
-        switch(status.game_status)
+        switch(game.status)
         {
-            case GameStatus::NotStarted:
+            case si::GameStatus::NotStarted:
                 drawWelcomeWindow();
                 break;
             
-            case GameStatus::Running:
+            case si::GameStatus::Running:
+                game.gameLoop();
+                menu_sprites.score.setString("SCORE: " + std::to_string(game.elements.score));
                 updateCanvas();
-                generateGameEvent();
-                controlItemsPosition();
-                checkCollision();
-                updateItemsPosition();
                 break;
             
-            case GameStatus::GameOver:
+            case si::GameStatus::GameOver:
                 drawGameOverScreen();
                 break;
-                
+            case si::GameStatus::Closed:    
             default:
+                window->close();
                 break;
         }
         window->display();
@@ -140,381 +73,24 @@ void Canvas::updateCanvas()
     //update menu frames
     for(Object & frame : menu_sprites.frames){window->draw(frame.getSprite());}
     //update enemies 
-    for (Invader& enemy : enemies)
+    for (Invader& enemy : game.enemies)
     {
-        if(enemy.isVisible() == true){window->draw(enemy.getSprite());}
+        if(enemy.isVisible()){window->draw(enemy.getSprite());}
     }    
     //update bullets
-    for (Shell& shell : bullets)
+    for (Shell& shell : game.bullets)
     {
-        if(shell.isVisible() == true){window->draw(shell.getSprite());}
+        if(shell.isVisible()){window->draw(shell.getSprite());}
     }
     //update obstacles
-    for (Obstacle& obstacle : obstacles)
+    for (Obstacle& obstacle : game.obstacles)
     {
-        if(obstacle.isVisible() == true){window->draw(obstacle.getSprite());}
+        if(obstacle.isVisible()){window->draw(obstacle.getSprite());}
     }
     //update enemy ship
-    if(invader_ship->isVisible() == true){window->draw(invader_ship->getSprite());}
+    if(game.invader_ship->isVisible()){window->draw(game.invader_ship->getSprite());}
     //update player ship
-    window->draw(player->getSprite());
-}
-
-void Canvas::updateItemsPosition()
-{
-    //update enemies
-    for (Invader& enemy : enemies){enemy.updatePosition();}
-    //update enemy ship
-    invader_ship->updatePosition();
-    //update bullets
-    for (Shell& shell : bullets){shell.updatePosition();}
-    //update player ship
-    player->updatePosition();
-    //update game score
-    menu_sprites.score.setString("SCORE: " + std::to_string(status.score));
-}
-
-void Canvas::controlItemsPosition()
-{
-    //bullets control
-    for (Shell& shell : bullets)
-    {
-        if(shell.isVisible() == true)
-        {
-            auto position = shell.getRectangle().getPosition();
-            if((position.x > grid.x) || (position.x < default_start_x) ||
-            (position.y > grid.y) || (position.y < default_start_y)
-            )
-            {
-                shell.setVisibility(false);
-            }
-        }
-    }
-    //enemy ship control
-    if(invader_ship->isVisible() == true)
-    {
-        auto position = invader_ship->getRectangle().getPosition();
-        if((position.x > grid.x) || (position.x < default_start_x) ||
-        (position.y > grid.y) || (position.y < default_start_y)
-        )
-        {
-            resources.sounds.ship_sound.stop();
-            invader_ship->setVisibility(false);
-            control.invader_ship_spawned = false;
-        }
-    }
-    //spawn invaders again 
-    if(control.invaders_left == 0)
-    {
-        //add logic for delay and music play
-        spawnInvaders();
-    }
-}
-
-void Canvas::generateGameEvent()
-{
-    //every tick for invaders
-    control.invader_shot_counter++;
-    //only if ship not spawned already
-    if(control.invader_ship_spawned == false){control.ship_spawn_counter++;}
-    //only if player shot, reload delay
-    if(control.player_reload == true){control.player_reload_counter++;}
-    //random enemy shot every second
-    if((control.invader_shot_counter % config.invader_shot_period) == 0)
-    {
-        auto index = randomizer() % enemies.size();
-        if(enemies[index].isVisible() == true)
-        {
-            const auto rectangle = enemies[index].getRectangle();
-            objectShot(rectangle,ShellType::Enemy);
-        }
-        
-    }
-    //generate invader ship spawn event
-    if(((control.ship_spawn_counter % config.ship_spawn_period) == 0) &&
-       (control.invader_ship_spawned == false))
-    {
-        spawnInvaderShip();
-        control.ship_spawn_counter = 0;
-        control.invader_ship_spawned = true;
-    }
-    //player shot handle 
-    if(player->getShotRequest() == true)
-    {
-        player->setShotRequest(false);
-        const auto rectangle = this->player->getRectangle();
-        resources.sounds.shoot_sound.play();
-        objectShot(rectangle,ShellType::Player);
-    }
-    //player reload handle
-    if(((control.player_reload_counter % config.player_reload_period) == 0) &&
-       (control.player_reload == true))
-    {
-        control.player_reload = false;
-    }
-}
-
-void Canvas::spawnInvaders()
-{
-    constexpr float init_x = default_border_size;
-    constexpr float init_y = default_border_size * 4.f;
-    
-    auto set_texture = [this](Invader &invader, int index)
-    {
-        switch (index)
-        {
-            case 1:
-            case 4:
-                invader.setTexture(resources.enemy_type_2);
-                break;
-            case 2:
-            case 5:
-                invader.setTexture(resources.enemy_type_3);
-                break;
-            case 0:
-            case 3:
-            default:
-                invader.setTexture(resources.enemy_type_1);
-                break;
-        }
-    };
-
-    if(enemies.size() > 0)
-    {
-        for (Invader& enemy : enemies)
-        {
-            enemy.revertPosition();
-            enemy.setVisibility(true);
-        }
-    }
-    else
-    {
-        Invader invader(sf::Vector2f(0.f,0.f),config.invader_speed,true);
-        float offset_y = 0.f;
-        for(auto j = 0; j < rows_with_invaders; j++)
-        {
-            float offset_x = 0.f;
-            for(auto i = 0; i < invaders_in_row; i++)
-            {
-                invader.setInitPosition(sf::Vector2(init_x + offset_x,init_y + offset_y));
-                invader.setDefaultPosition();
-                set_texture(invader,j);
-                enemies.push_back(invader);
-                offset_x += grid_row_step;
-            }
-            offset_y += grid_row_step;
-        }
-    }
-    control.invaders_left = enemies.size();
-}
-
-void Canvas::spawnObstacles()
-{
-    // 4 structs with obstacles, 10*5 obstacles in struct , 2 rows, initial start 120, 900
-    constexpr int obstacles_in_row      = 10;
-    constexpr int struct_with_obstacles = 4;
-    constexpr float rows_with_obstacles = 5;
-    constexpr float init_x              = 120.f;
-    constexpr float init_y              = 900.f;
-
-    if(obstacles.size() > 0)
-    {
-        for(Obstacle& obstacle : obstacles)
-        {
-            obstacle.setVisibility(true);
-        }
-    }
-    else
-    {
-        sf::Vector2f init(init_x,init_y);
-        Obstacle obstacle(init);
-        sf::FloatRect rectangle = obstacle.getRectangle();
-        obstacle.setTexture(resources.obstacle);
-        for(auto i = 0; i < rows_with_obstacles; i++)
-        {
-            for(auto j = 0; j < struct_with_obstacles; j++)
-            {
-                for(auto k = 0; k < obstacles_in_row; k++)
-                {
-                    obstacle.setPosition(init);
-                    obstacles.push_back(obstacle);
-                    init.x += rectangle.width;
-                }
-                init.x += 120.f;
-            }
-            init.x  = init_x;
-            init.y -= rectangle.height;
-        } 
-    }
-}
-
-void Canvas::spawnInvaderShip()
-{
-    invader_ship->setDefaultPosition();
-    invader_ship->setVisibility(true);
-    resources.sounds.ship_sound.play();
-}
-
-void Canvas::executeEvent(const sf::Event &event)
-{
-    sf::IntRect player_size = player->getSprite().getTextureRect();
-    switch (event.type)
-    {
-        case sf::Event::Closed:
-            // game stop, window closed
-            window->close();
-            break;
-    
-        case sf::Event::KeyPressed:
-            // game controls
-            switch(event.key.code)
-            {
-                case sf::Keyboard::Key::Left:
-                    control.left_pressed = true;
-                    player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-                    break;
-
-                case sf::Keyboard::Key::Right:
-                    control.right_pressed = true;
-                    player->setMotionVector(sf::Vector2f(bottom_right_x - static_cast<float>(player_size.width),bottom_right_y));
-                    break;
-
-                case sf::Keyboard::Key::Space:
-                    switch(status.game_status)
-                    {
-                        case GameStatus::NotStarted:
-                            status.player_lives = default_num_of_lives;
-                            spawnInvaders();
-                            spawnObstacles();
-                            status.game_status = GameStatus::Running;    
-                            break;
-                        
-                        case GameStatus::Running:
-                            if(control.player_reload == false)
-                            {
-                                player->setShotRequest(true);
-                                control.player_reload = true;
-                            }
-                            break;
-                        
-                        case GameStatus::GameOver:
-                            status.game_status = GameStatus::NotStarted;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            break;
-        
-        case sf::Event::KeyReleased:
-            switch(event.key.code)
-            {
-                case sf::Keyboard::Key::Left:
-                    control.left_pressed = false;
-                    break;
-
-                case sf::Keyboard::Key::Right:
-                    control.right_pressed = false;
-                    break;
-
-                default:
-                    break;
-            }
-            if((control.left_pressed == false) && (control.right_pressed == false))
-            {
-                player->setMotionVector(player->getRectangle().getPosition());
-            }
-            break;
-
-    default:
-        break;
-    }
-}
-
-void Canvas::objectShot(const sf::FloatRect &rectangle, const ShellType shell_type)
-{
-    //we are going to shut from the middle of the object
-    sf::Vector2f position;     
-    position.x = rectangle.getPosition().x + rectangle.width/2.0f;
-    position.y = rectangle.getPosition().y + rectangle.height/2.0f;
-    //check if we have available shells in array(that was already created and executed)
-    auto it = std::find_if(bullets.begin(),bullets.end(),[]( Shell& shell){return shell.isVisible() == false;} );
-    if(it != bullets.end())
-    {
-        //use existed one
-        it->setShellType(shell_type);
-        it->setPosition(position);
-        it->setVisibility(true);
-    }
-    else
-    {
-        //create new one
-        Shell shell(position,config.shell_speed,shell_type);
-        shell.setTexture(resources.shell);
-        shell.setSpriteColor(sf::Color(40, 236, 250));
-        bullets.push_back(shell);
-    }
-}
-
-void Canvas::checkCollision()
-{
-    
-    for (Shell& shell : bullets)
-    {
-        if((shell.getShellType() == ShellType::Enemy) && (shell.isVisible() == true))
-        {
-            //collision between enemy shells and player ship
-            if(player->getRectangle().intersects(shell.getRectangle()))
-            {
-                handlePlayerHitting();
-            }
-        }
-
-        if((shell.getShellType() == ShellType::Player) && (shell.isVisible() == true))
-        {
-            //collision between player shells and invaders
-            for (Invader& enemy : enemies)
-            {
-
-                if((enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
-                {
-                    shell.setVisibility(false);
-                    enemy.setVisibility(false);
-                    resources.sounds.invader_killed_sound.play();
-                    control.invaders_left--;
-                    status.score += invader_reward;
-                }    
-            }
-            //collision between player shells and invader ship
-            if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
-            {
-                resources.sounds.ship_sound.stop();
-                shell.setVisibility(false);
-                invader_ship->setVisibility(false);
-                status.score += invader_ship_reward;
-                control.invader_ship_spawned = false;
-            }
-        }
-        //collision between shells and player obstacles
-        for (Obstacle& obstacle : obstacles)
-        {
-            if((obstacle.isVisible() == true)&& (shell.getRectangle().intersects(obstacle.getRectangle()) == true))
-            {
-                if(shell.getShellType() == ShellType::Enemy)
-                {
-                    obstacle.setVisibility(false);
-                    shell.setVisibility(false);
-                }
-                else if(shell.getShellType() == ShellType::Player)
-                {
-                    shell.setVisibility(false);
-                }
-            }
-        }
-    }
+    window->draw(game.player->getSprite());
 }
 
 void Canvas::setMenuSprites()
@@ -522,35 +98,35 @@ void Canvas::setMenuSprites()
     //setup game score item
     menu_sprites.score.setFont(resources.game_font);
     menu_sprites.score.setCharacterSize(font_size);
-    menu_sprites.score.setPosition(sf::Vector2f(static_cast<float>(frame_length),static_cast<float>(frame_width)));
+    menu_sprites.score.setPosition(sf::Vector2f(static_cast<float>(si::frame_length),static_cast<float>(si::frame_width)));
     //player lives indicator
     menu_sprites.live.setTexture(resources.player);
     //setup canvas frames
     //up 1
-    menu_sprites.frames[0].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[0].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
     menu_sprites.frames[0].setTexture(resources.frame);
     menu_sprites.frames[0].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[0].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    menu_sprites.frames[0].setPosition(sf::Vector2f(si::default_start_x,si::default_start_y));
     //right
-    menu_sprites.frames[1].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
+    menu_sprites.frames[1].setSpriteRectangle(sf::IntRect(0,0,si::frame_width,si::default_y_size));
     menu_sprites.frames[1].setTexture(resources.frame);
     menu_sprites.frames[1].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[1].setPosition(sf::Vector2f(default_x_size - static_cast<float>(frame_width),default_start_y));
+    menu_sprites.frames[1].setPosition(sf::Vector2f(si::default_x_size - static_cast<float>(si::frame_width),si::default_start_y));
     //up 2
-    menu_sprites.frames[2].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[2].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
     menu_sprites.frames[2].setTexture(resources.frame);
     menu_sprites.frames[2].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[2].setPosition(sf::Vector2f(default_start_x,static_cast<float>(frame_length)));
+    menu_sprites.frames[2].setPosition(sf::Vector2f(si::default_start_x,static_cast<float>(si::frame_length)));
     //left
-    menu_sprites.frames[3].setSpriteRectangle(sf::IntRect(0,0,frame_width,default_y_size));
+    menu_sprites.frames[3].setSpriteRectangle(sf::IntRect(0,0,si::frame_width,si::default_y_size));
     menu_sprites.frames[3].setTexture(resources.frame);
     menu_sprites.frames[3].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[3].setPosition(sf::Vector2f(default_start_x,default_start_y));
+    menu_sprites.frames[3].setPosition(sf::Vector2f(si::default_start_x,si::default_start_y));
     //down
-    menu_sprites.frames[4].setSpriteRectangle(sf::IntRect(0,0,default_x_size,frame_width));
+    menu_sprites.frames[4].setSpriteRectangle(sf::IntRect(0,0,si::default_x_size,si::frame_width));
     menu_sprites.frames[4].setTexture(resources.frame);
     menu_sprites.frames[4].setSpriteColor(sf::Color::White);
-    menu_sprites.frames[4].setPosition(sf::Vector2f(default_start_x,default_y_size - static_cast<float>(frame_width)));
+    menu_sprites.frames[4].setPosition(sf::Vector2f(si::default_start_x,si::default_y_size - static_cast<float>(si::frame_width)));
 }
 
 void Canvas::drawPlayerLives()
@@ -559,10 +135,10 @@ void Canvas::drawPlayerLives()
     constexpr float border = 10.f;
     sf::IntRect texture_size =  menu_sprites.live.getTextureRect();
     //initial offset, lives will be drawn from right to left
-    float offset = default_x_size - frame_width - static_cast<float>(texture_size.width) - border;
-    for(auto i = 0; i < status.player_lives; i++)
+    float offset = si::default_x_size - si::frame_width - static_cast<float>(texture_size.width) - border;
+    for(auto i = 0; i < game.elements.player_lives; i++)
     {
-        menu_sprites.live.setPosition(sf::Vector2f(offset,static_cast<float>(frame_width)));
+        menu_sprites.live.setPosition(sf::Vector2f(offset,static_cast<float>(si::frame_width)));
         window->draw(menu_sprites.live);
         offset -= static_cast<float>(texture_size.width) + border;
     }
@@ -571,29 +147,29 @@ void Canvas::drawPlayerLives()
 void Canvas::drawWelcomeWindow()
 {
     sf::Text welcome_text;
-    sf::Vector2f position(default_border_size,default_border_size);
+    sf::Vector2f position(si::default_border_size,si::default_border_size);
     welcome_text.setFont(resources.game_font);
     welcome_text.setCharacterSize(font_size);
 
     welcome_text.setString(title + " version : " + version);
     welcome_text.setPosition(position);
     window->draw(welcome_text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
 
     welcome_text.setString("Controls:");
     welcome_text.setPosition(position);
     window->draw(welcome_text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
 
     welcome_text.setString("Shot - Space Bar");
     welcome_text.setPosition(position);
     window->draw(welcome_text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
 
     welcome_text.setString("Movement - arrows");
     welcome_text.setPosition(position);
     window->draw(welcome_text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
     
     welcome_text.setString("Press Space key to start...");
     welcome_text.setPosition(position);
@@ -603,40 +179,23 @@ void Canvas::drawWelcomeWindow()
 void Canvas::drawGameOverScreen()
 {
     sf::Text text;
-    sf::Vector2f position(default_border_size,default_border_size);
+    sf::Vector2f position(si::default_border_size,si::default_border_size);
     text.setFont(resources.game_font);
     text.setCharacterSize(font_size);
 
     text.setString("GAME OVER");
     text.setPosition(position);
     window->draw(text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
 
-    text.setString("Your score : " + std::to_string(status.score));
+    text.setString("Your score : " + std::to_string(game.elements.score));
     text.setPosition(position);
     window->draw(text);
-    position.y += default_border_size;
+    position.y += si::default_border_size;
 
     text.setString("Press Space key to restart the game");
     text.setPosition(position);
     window->draw(text);
-}
-
-void Canvas::handlePlayerHitting()
-{
-    //remove all shells from canvas
-    for (Shell& shell : bullets){shell.setVisibility(false);}
-    if(status.player_lives > 0)
-    {
-        resources.sounds.player_killed_sound.play();
-        //decrease player lives counter
-        status.player_lives--;
-        //move player to default position
-        player->setDefaultPosition();
-        player->setMotionVector(sf::Vector2f(bottom_left_x,bottom_left_y));
-        control.invader_shot_counter = 0;
-    }
-    else{status.game_status = GameStatus::GameOver;}
 }
 
 void Canvas::loadResources()
@@ -668,22 +227,22 @@ void Canvas::loadResources()
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //shoot sound
-    if(!resources.sounds.shoot_sound_buffer.loadFromFile("rc/sounds/shoot.wav"))
+    if(!resources.shoot_sound_buffer.loadFromFile("rc/sounds/shoot.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //invader killed sound
-    if(!resources.sounds.invader_killed_sound_buffer.loadFromFile("rc/sounds/invaderkilled.wav"))
+    if(!resources.invader_killed_sound_buffer.loadFromFile("rc/sounds/invaderkilled.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //player killed sound
-    if(!resources.sounds.player_killed_sound_buffer.loadFromFile("rc/sounds/explosion.wav"))
+    if(!resources.player_killed_sound_buffer.loadFromFile("rc/sounds/explosion.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
     //invader ship sound
-    if(!resources.sounds.ship_sound_buffer.loadFromFile("rc/sounds/ufo_highpitch.wav"))
+    if(!resources.ship_sound_buffer.loadFromFile("rc/sounds/ufo_highpitch.wav"))
     {
         throw std::runtime_error(std::string("Could not load resource files!"));
     }
@@ -696,10 +255,46 @@ void Canvas::loadResources()
 
 void Canvas::setupSounds()
 {
-    resources.sounds.shoot_sound.setBuffer(resources.sounds.shoot_sound_buffer);
-    resources.sounds.invader_killed_sound.setBuffer(resources.sounds.invader_killed_sound_buffer);
-    resources.sounds.player_killed_sound.setBuffer(resources.sounds.player_killed_sound_buffer);
-    resources.sounds.ship_sound.setBuffer(resources.sounds.ship_sound_buffer);
+    game.sounds.shoot_sound.setBuffer(resources.shoot_sound_buffer);
+    game.sounds.invader_killed_sound.setBuffer(resources.invader_killed_sound_buffer);
+    game.sounds.player_killed_sound.setBuffer(resources.player_killed_sound_buffer);
+    game.sounds.ship_sound.setBuffer(resources.ship_sound_buffer);
     //shall be played during the time when ship is present on the canvas
-    resources.sounds.ship_sound.setLoop(true);
+    game.sounds.ship_sound.setLoop(true);
+}
+
+void Canvas::setupTextures()
+{
+    auto set_texture = [this](Invader &invader, int index)
+    {
+        switch (index)
+        {
+            case 1:
+            case 4:
+                invader.setTexture(resources.enemy_type_2);
+                break;
+            case 2:
+            case 5:
+                invader.setTexture(resources.enemy_type_3);
+                break;
+            case 0:
+            case 3:
+            default:
+                invader.setTexture(resources.enemy_type_1);
+                break;
+        }
+    };
+
+    for(Obstacle& obstacle : game.obstacles){obstacle.setTexture(resources.obstacle);}
+    game.player->setTexture(resources.player);
+    game.invader_ship->setTexture(resources.enemy_ship);
+    
+    //special texture setup for invaders (use different textures for different rows)
+    int row_counter = 0;
+    int num_of_invaders = game.enemies.size();
+    for(auto i = 0; i <num_of_invaders; ++i)
+    {
+        set_texture(game.enemies[i],row_counter);
+        if(((i+1) % si::invaders_in_row) == 0){row_counter++;}
+    }
 }
