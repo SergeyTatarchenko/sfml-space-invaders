@@ -164,7 +164,8 @@ void Game::generateGameEvent()
     //random enemy shot every second
     if((control.invader_shot_counter % config.invader_shot_period) == 0)
     {
-        auto index = randomizer() % enemies.size();
+        std::uniform_int_distribution<int> dist(0, enemies.size() - 1);
+        auto index = dist(randomizer); 
         if(enemies[index].isVisible())
         {
             const auto rectangle = enemies[index].getRectangle();
@@ -290,8 +291,7 @@ void Game::executeEvent(const sf::Event &event)
 
                 case sf::Keyboard::Key::Right:
                     control.right_pressed = true;
-                    sf::IntRect player_size = player->getSprite().getTextureRect();
-                    player->setMotionVector(sf::Vector2f(bottom_right_x - static_cast<float>(player_size.width),bottom_right_y));
+                    player->setMotionVector(sf::Vector2f(bottom_right_x - static_cast<float>(player->getSprite().getTextureRect().width),bottom_right_y));
                     break;
 
                 case sf::Keyboard::Key::Space:
