@@ -4,7 +4,6 @@
  * @brief 
  *
  * @author Siarhei Tatarchanka
- * Contact: zlojdigger@gmail.com
  *
  */
 

@@ -4,7 +4,6 @@
  * @brief 
  *
  * @author Siarhei Tatarchanka
- * Contact: zlojdigger@gmail.com
  *
  */
 
@@ -14,11 +13,12 @@
 #include <array>
 #include "game.hpp"
 
-//canvas settings
+//////////////////////////////CANVAS SETTINGS///////////////////////////////////
 constexpr          int num_of_frames    = 5;
 constexpr          int font_size        = 32;
 constexpr unsigned int canvas_width     = 500;
 constexpr unsigned int canvas_height    = 500;
+////////////////////////////////////////////////////////////////////////////////
 
 struct GameMenuSprites 
 {

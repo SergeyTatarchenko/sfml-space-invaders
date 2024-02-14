@@ -9,12 +9,12 @@
 #include "items.hpp"
 #include <cmath>
 
-//default shell dimensions
-constexpr int shell_width         = 2;
-constexpr int shell_height        = 10;
-//default obstacle dimensions
-constexpr int obstacle_width      = 10;
-constexpr int obstacle_height     = 10;
+///////////////////SETTINGS FOR ITEMS WHITHOUT TEXTURES/////////////////////////
+constexpr int shell_width     = 2;
+constexpr int shell_height    = 10;
+constexpr int obstacle_width  = 10;
+constexpr int obstacle_height = 10;
+////////////////////////////////////////////////////////////////////////////////
 
 Invader::Invader(sf::Vector2f position, float speed, bool visible)
 {

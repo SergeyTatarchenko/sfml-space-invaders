@@ -4,11 +4,9 @@
  * @brief 
  *
  * @author Siarhei Tatarchanka
- * Contact: zlojdigger@gmail.com
  *
  */
 
-#include <iostream>
 #include "canvas.hpp"
 
 //window title
@@ -16,7 +14,7 @@ static const sf::String title = "Space Invaders";
 //game version
 static const sf::String version = "0.01";
 //object rectangles for the menu frames
-std::array<sf::IntRect,num_of_frames> frame_rectangles = 
+static const std::array<sf::IntRect,num_of_frames> frame_rectangles = 
 {
     sf::IntRect(0,0,si::default_x_size,si::frame_width),
     sf::IntRect(0,0,si::frame_width,si::default_y_size),
@@ -25,13 +23,22 @@ std::array<sf::IntRect,num_of_frames> frame_rectangles =
     sf::IntRect(0,0,si::default_x_size,si::frame_width)
 };
 //object positions for the menu frames
-std::array<sf::Vector2f,num_of_frames> frame_positions = 
+static const std::array<sf::Vector2f,num_of_frames> frame_positions = 
 {
     sf::Vector2f(si::default_start_x,si::default_start_y),
     sf::Vector2f(si::default_x_size - static_cast<float>(si::frame_width),si::default_start_y),
     sf::Vector2f(si::default_start_x,static_cast<float>(si::frame_length)),
     sf::Vector2f(si::default_start_x,si::default_start_y),
     sf::Vector2f(si::default_start_x,si::default_y_size - static_cast<float>(si::frame_width))
+};
+//welcome window text array
+static const std::array<std::string,5> welcome_text = 
+{
+    std::string(title + " version : " + version),
+    std::string("Controls:"),
+    std::string("Shot - Space Bar"),
+    std::string("Movement - arrows"),
+    std::string("Press Space key to start...")
 };
 
 Canvas::Canvas(const unsigned int framerate):
@@ -144,34 +151,18 @@ void Canvas::drawPlayerLives()
 
 void Canvas::drawWelcomeWindow()
 {
-    sf::Text welcome_text;
+    sf::Text text_var;
     sf::Vector2f position(si::default_border_size,si::default_border_size);
-    welcome_text.setFont(resources.game_font);
-    welcome_text.setCharacterSize(font_size);
+    text_var.setFont(resources.game_font);
+    text_var.setCharacterSize(font_size);
 
-    welcome_text.setString(title + " version : " + version);
-    welcome_text.setPosition(position);
-    window.draw(welcome_text);
-    position.y += si::default_border_size;
-
-    welcome_text.setString("Controls:");
-    welcome_text.setPosition(position);
-    window.draw(welcome_text);
-    position.y += si::default_border_size;
-
-    welcome_text.setString("Shot - Space Bar");
-    welcome_text.setPosition(position);
-    window.draw(welcome_text);
-    position.y += si::default_border_size;
-
-    welcome_text.setString("Movement - arrows");
-    welcome_text.setPosition(position);
-    window.draw(welcome_text);
-    position.y += si::default_border_size;
-    
-    welcome_text.setString("Press Space key to start...");
-    welcome_text.setPosition(position);
-    window.draw(welcome_text);
+    for(const std::string& text : welcome_text)
+    {
+        text_var.setString(text);
+        text_var.setPosition(position);
+        window.draw(text_var);
+        position.y += si::default_border_size;
+    }
 }
 
 void Canvas::drawGameOverScreen()
