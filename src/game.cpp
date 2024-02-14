@@ -52,6 +52,14 @@ void Game::calculateItemsSpeed(const unsigned int framerate)
     else{config = GameConfig();}
 }
 
+void si::Game::gameRestart()
+{
+    elements = GameElements();
+    spawnInvaders();
+    spawnObstacles();
+    status = GameStatus::Running;
+}
+
 void Game::setupInvaders()
 {
     constexpr float init_x = default_border_size;
@@ -230,7 +238,7 @@ void Game::checkCollision()
             //collision between enemy shells and player ship
             if(player->getRectangle().intersects(shell.getRectangle()))
             {
-                handlePlayerHitting();
+                handlePlayerHit();
             }
         }
 
@@ -242,21 +250,13 @@ void Game::checkCollision()
 
                 if((enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
                 {
-                    shell.setVisibility(false);
-                    enemy.setVisibility(false);
-                    sounds.invader_killed_sound.play();
-                    control.invaders_left--;
-                    elements.score += invader_reward;
+                    handleInvaderHit(shell,enemy);
                 }    
             }
             //collision between player shells and invader ship
             if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
             {
-                sounds.ship_sound.stop();
-                shell.setVisibility(false);
-                invader_ship->setVisibility(false);
-                elements.score += invader_ship_reward;
-                control.invader_ship_spawned = false;
+                handleShipHit(shell);
             }
         }
         //collision between shells and player obstacles
@@ -264,22 +264,15 @@ void Game::checkCollision()
         {
             if((obstacle.isVisible() == true)&& (shell.getRectangle().intersects(obstacle.getRectangle()) == true))
             {
-                if(shell.getShellType() == ShellType::Enemy)
-                {
-                    obstacle.setVisibility(false);
-                    shell.setVisibility(false);
-                }
-                else if(shell.getShellType() == ShellType::Player)
-                {
-                    shell.setVisibility(false);
-                }
+                obstacle.setVisibility(false);
+                shell.setVisibility(false);
             }
         }
     }
 }
+
 void Game::executeEvent(const sf::Event &event)
 {
-    sf::IntRect player_size = player->getSprite().getTextureRect();
     switch (event.type)
     {
         case sf::Event::Closed:
@@ -297,6 +290,7 @@ void Game::executeEvent(const sf::Event &event)
 
                 case sf::Keyboard::Key::Right:
                     control.right_pressed = true;
+                    sf::IntRect player_size = player->getSprite().getTextureRect();
                     player->setMotionVector(sf::Vector2f(bottom_right_x - static_cast<float>(player_size.width),bottom_right_y));
                     break;
 
@@ -304,10 +298,7 @@ void Game::executeEvent(const sf::Event &event)
                     switch(status)
                     {
                         case GameStatus::NotStarted:
-                            elements.player_lives = default_num_of_lives;
-                            spawnInvaders();
-                            spawnObstacles();
-                            status = GameStatus::Running;    
+                            gameRestart();
                             break;
                         
                         case GameStatus::Running:
@@ -355,7 +346,7 @@ void Game::executeEvent(const sf::Event &event)
     }
 }
 
-void Game::handlePlayerHitting()
+void Game::handlePlayerHit()
 {
     //remove all shells from canvas
     for (Shell& shell : bullets){shell.setVisibility(false);}
@@ -370,6 +361,24 @@ void Game::handlePlayerHitting()
         control.invader_shot_counter = 0;
     }
     else{status = GameStatus::GameOver;}
+}
+
+void si::Game::handleShipHit(Shell &shell)
+{
+    shell.setVisibility(false);
+    invader_ship->setVisibility(false);
+    sounds.ship_sound.stop();
+    control.invader_ship_spawned = false;
+    elements.score += invader_ship_reward;
+}
+
+void si::Game::handleInvaderHit(Shell &shell, Invader &invader)
+{
+    shell.setVisibility(false);
+    invader.setVisibility(false);
+    sounds.invader_killed_sound.play();
+    control.invaders_left--;
+    elements.score += invader_reward;
 }
 
 void Game::spawnInvaderShip()
@@ -397,9 +406,10 @@ void Game::objectShot(const sf::FloatRect &rectangle, const ShellType shell_type
     else
     {
         //create new one
-        const sf::Texture* shell_texture = bullets[0].getSprite().getTexture();
-        const sf::Color shell_color = bullets[0].getSprite().getColor();
         Shell shell(position,config.shell_speed,shell_type);
+        //we expect that one shell always exist in bullets vector
+        const sf::Texture* shell_texture = bullets[0].getSprite().getTexture();
+        const sf::Color shell_color      = bullets[0].getSprite().getColor();
         shell.setTexture(*shell_texture);
         shell.setSpriteColor(shell_color);
         bullets.push_back(shell);

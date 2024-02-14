@@ -15,7 +15,6 @@
 static const sf::String title = "Space Invaders";
 //game version
 static const sf::String version = "0.01";
-
 //object rectangles for the menu frames
 std::array<sf::IntRect,num_of_frames> frame_rectangles = 
 {
@@ -44,9 +43,9 @@ Canvas::Canvas(const unsigned int framerate):
     window.setActive(true);
     window.setFramerateLimit(framerate);
     loadResources();
-    setupMenu();
     setupTextures();
     setupSounds();
+    setupMenu();
 }
 
 void Canvas::runEventLoop()

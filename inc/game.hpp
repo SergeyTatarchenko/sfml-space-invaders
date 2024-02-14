@@ -153,6 +153,8 @@ namespace si
             GameConfig config;
             /// @brief random number generator instance
             std:: minstd_rand randomizer;
+            /// @brief restart game, setup all game elements to initial state
+            void gameRestart();
             /// @brief setup invader instances
             void setupInvaders();
             /// @brief setup player obstacle instances
@@ -170,7 +172,14 @@ namespace si
             /// @brief game event generator
             void generateGameEvent();
             /// @brief handler for player hitting by invader event
-            void handlePlayerHitting();
+            void handlePlayerHit();
+            /// @brief handler for invader ship hitting by player ivent 
+            /// @param shell player shell that hit the ship
+            void handleShipHit(Shell& shell);
+            /// @brief handler for invader hitting by player ivent
+            /// @param shell player shell that hit the invader
+            /// @param invader invader that was hit
+            void handleInvaderHit(Shell& shell, Invader& invader);
             /// @brief spawn invader ship on the canvas
             void spawnInvaderShip();
             /// @brief generate a new shell on the canvas
