@@ -167,9 +167,10 @@ void Game::generateGameEvent()
     //random enemy shot every second
     if((control.invader_shot_counter % config.invader_shot_period) == 0)
     {
-        std ::vector<Invader>::iterator last_enemy;
-        last_enemy = std ::remove_if(enemies.begin(), enemies.end(),[](Invader& enemy){return !enemy.isVisible();});
-        std::uniform_int_distribution<int> dist(0, std::distance(enemies.begin(), last_enemy) - 1);
+        //std ::vector<Invader>::iterator last_enemy;
+        //last_enemy = std ::remove_if(enemies.begin(), enemies.end(),[](Invader& enemy){return !enemy.isVisible();});
+        //std::uniform_int_distribution<int> dist(0, std::distance(enemies.begin(), last_enemy) - 1);
+        std::uniform_int_distribution<int> dist(0, enemies.size() - 1);
         auto index = dist(randomizer); 
         if(enemies[index].isVisible())
         {
@@ -381,14 +382,11 @@ void si::Game::handleShipHit(Shell &shell)
 
 void si::Game::handleInvaderHit(Shell &shell, Invader &invader)
 {
-    if(control.invaders_left > 0)
-    {
-        shell.setVisibility(false);
-        invader.setVisibility(false);
-        sounds.invader_killed_sound.play();
-        control.invaders_left--;
-        elements.score += invader_reward;
-    }
+    shell.setVisibility(false);
+    invader.setVisibility(false);
+    sounds.invader_killed_sound.play();
+    control.invaders_left--;
+    elements.score += invader_reward;
 }
 
 void Game::spawnInvaderShip()

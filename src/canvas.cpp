@@ -244,12 +244,12 @@ void Canvas::loadResources()
 
 void Canvas::setupSounds()
 {
-    game.sounds.shoot_sound.setBuffer(resources.shoot_sound_buffer);
-    game.sounds.invader_killed_sound.setBuffer(resources.invader_killed_sound_buffer);
-    game.sounds.player_killed_sound.setBuffer(resources.player_killed_sound_buffer);
-    game.sounds.ship_sound.setBuffer(resources.ship_sound_buffer);
+    //game.sounds.shoot_sound.setBuffer(resources.shoot_sound_buffer);
+    //game.sounds.invader_killed_sound.setBuffer(resources.invader_killed_sound_buffer);
+    //game.sounds.player_killed_sound.setBuffer(resources.player_killed_sound_buffer);
+    //game.sounds.ship_sound.setBuffer(resources.ship_sound_buffer);
     //shall be played during the time when ship is present on the canvas
-    game.sounds.ship_sound.setLoop(true);
+    //game.sounds.ship_sound.setLoop(true);
 }
 
 void Canvas::setupTextures()
