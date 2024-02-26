@@ -7,6 +7,8 @@
  *
  */
 #include <ctime>
+#include <algorithm>
+#include <iostream>
 #include "game.hpp"
 
 using namespace si;
@@ -155,6 +157,7 @@ void Game::updateItemsPosition()
 
 void Game::generateGameEvent()
 {
+    std::cout<<"invaders left : "<<control.invaders_left<<"\n";
     //every tick for invaders shot event
     ++control.invader_shot_counter;
     //only if ship not spawned already
@@ -164,7 +167,9 @@ void Game::generateGameEvent()
     //random enemy shot every second
     if((control.invader_shot_counter % config.invader_shot_period) == 0)
     {
-        std::uniform_int_distribution<int> dist(0, enemies.size() - 1);
+        std ::vector<Invader>::iterator last_enemy;
+        last_enemy = std ::remove_if(enemies.begin(), enemies.end(),[](Invader& enemy){return !enemy.isVisible();});
+        std::uniform_int_distribution<int> dist(0, std::distance(enemies.begin(), last_enemy) - 1);
         auto index = dist(randomizer); 
         if(enemies[index].isVisible())
         {
@@ -227,9 +232,10 @@ void Game::controlItemsPosition()
     if(control.invaders_left == 0)
     {
         //add logic for delay and music play
-        spawnInvaders();
+        //spawnInvaders();
     }
 }
+
 void Game::checkCollision()
 {
     for (Shell& shell : bullets)
@@ -252,7 +258,8 @@ void Game::checkCollision()
                 if((enemy.isVisible() == true) && (shell.getRectangle().intersects(enemy.getRectangle()) == true))
                 {
                     handleInvaderHit(shell,enemy);
-                }    
+                    if(control.invaders_left == 0){break;}
+                }
             }
             //collision between player shells and invader ship
             if((invader_ship->isVisible() == true) && (shell.getRectangle().intersects(invader_ship->getRectangle()) == true))
@@ -374,11 +381,14 @@ void si::Game::handleShipHit(Shell &shell)
 
 void si::Game::handleInvaderHit(Shell &shell, Invader &invader)
 {
-    shell.setVisibility(false);
-    invader.setVisibility(false);
-    sounds.invader_killed_sound.play();
-    control.invaders_left--;
-    elements.score += invader_reward;
+    if(control.invaders_left > 0)
+    {
+        shell.setVisibility(false);
+        invader.setVisibility(false);
+        sounds.invader_killed_sound.play();
+        control.invaders_left--;
+        elements.score += invader_reward;
+    }
 }
 
 void Game::spawnInvaderShip()
